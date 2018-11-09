@@ -1,4 +1,4 @@
-from rython import as_rython
+from matrython import as_rython
 from sys import argv
 
 if __name__ == '__main__':

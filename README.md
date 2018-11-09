@@ -9,6 +9,10 @@ comfortable. I decided that I wanted to be able to interact with an R environmen
 from within Python, and that being able to write a file that could execute in
 both languages was really appealing.
 
+## install
+`pip install matrython`  
+Import as rython
+
 ### Development
 Current build is 0.1.0  
 Developed solely by me  

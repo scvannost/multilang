@@ -1,8 +1,8 @@
 from distutils.core import setup
 setup(
   name = 'matrython',
-  packages = ['rython'],
-  version = '0.1.0',
+  packages = ['matrython'],
+  version = '0.1.0a1',
   license='MIT',
   description = 'Allows for running R and Matlab code',
   author = 'SC van Nostrand',
