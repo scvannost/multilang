@@ -1,6 +1,6 @@
 from distutils.core import setup
 setup(
-  name = 'rython',
+  name = 'matrython',
   packages = ['rython'],
   version = '0.1.0',
   license='MIT',
@@ -12,6 +12,8 @@ setup(
   install_requires=[
           'pexpect',
           'scipy',
+	  'pandas',
+	  'numpy',
       ],
   classifiers=[
     'Development Status :: 3 - Alpha',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
