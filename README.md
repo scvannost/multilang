@@ -16,16 +16,15 @@ If you find any bugs, please place an Issue on the github.
 
 ## Features
 The 2 main use cases are:  
-1.```bash
-python -m rython path/to/file.ry
-```  
-2. ```python
-import rython
+1. `python -m rython path/to/file.ry`
+2.
+~~~python
+#! rython
 ry = rython.Master()
 ry.r('...')
 # or
 rython.as_rython('/path/to/file.ry')
-```
+~~~
 
 The first shows how the module can be used to run Rython .ry scripts directly. It
 calls `rython.as_rython()` on the given file.  
