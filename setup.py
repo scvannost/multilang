@@ -8,7 +8,7 @@ setup(
   author = 'SC van Nostrand',
   author_email = 'scvannost@gmail.com',
   url = 'scvannost.com',
-  download_url = 'https://github.com/scvannost/',
+  download_url = 'https://github.com/scvannost/rython/archive/0.1.0.tar.gz',
   keywords = ['R', 'Matlab', 'environment'],
   install_requires=[
           'pexpect',
