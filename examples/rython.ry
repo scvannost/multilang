@@ -1,0 +1,49 @@
+#! rython R
+a <- c(1,2,3)
+b <- matrix(1:9,
+	nrow=3, ncol=3)
+# this is an R comment
+b % weird comment
+test <- function(x) {
+	x <- x
+	return(x+2)
+}
+
+#! matlab -> a, b
+% r_to_mat
+b = a.*2; # [2, 4, 6]
+i = eye(3);
+% matlab-style comments work in matlab
+# weirder comment
+
+#! python -> a, b, i
+# mat_to_py
+# python comments work properly too
+% also good?
+b += 3 % [5, 7, 9]
+i = list(i)
+
+@rython
+def test():
+	print('ok')
+
+#! R -> as_array(b, False), i
+# py_to_r
+d <- b
+
+#! py ->
+# r_to_py
+print('d',b)
+def test():
+	hello = 'world'
+	print('hello',hello)
+	return
+
+#! mat -> as_array(b), i
+# py_to_mat
+scv = 2
+
+#! random -> b,i
+# mat_to_r
+
+#! p -> a,b,d,i

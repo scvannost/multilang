@@ -1,0 +1,87 @@
+#! rython
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pickle
+
+# load all the pickled data
+samples = pickle.load(open('data.p','rb'))
+samples = samples[['Mouse','Time','Condition','Sac','Injection']]
+
+idx = [i for i in samples.index if i not in [93,94,86,92,67,63]]
+samples = samples.loc[idx]
+
+counts = pd.read_csv('counts.csv',header=0,index_col=0)
+counts.columns = samples.index
+alpha = 0.05
+
+if not 'check' in _VARIABLES: check = 'Condition'
+if not 'value' in _VARIABLES: value = 'Saline'
+
+if value in ['Saline','PolyIC']:
+    on = 'Injection'
+elif value in ['Heat', 'Control']:
+    on = 'Condition'
+elif value in ['TcMax','1Day']:
+    on = 'Sac'
+
+fname = 'deseq/'+check+'_'+value
+if value == 'PolyIC':
+    value = '100 ug Poly I:C'
+elif value == '1Day':
+    value = '1 Day'
+
+idx = samples.index[samples[on] == value].tolist()
+temp = counts[idx]
+with open(fname+'.csv','w') as f:
+    f.write(temp.to_csv())
+    
+group = samples[check][idx]
+if check == 'Injection':
+    group = pd.Series(['Saline' if i == 'Saline' else 'PolyIC' for i in group],index=group.index)
+elif check == 'Sac':
+    group = pd.Series(['TcMax' if i == 'TcMax' else '1Day' for i in group],index=group.index)
+
+with open(fname+'_coldata.csv','w') as f:
+    f.writelines([
+        ',"'+check+'"\n',
+        group.to_csv()
+    ])
+
+#! r -> fname, check
+library("DESeq2")
+cnts <- read.csv(paste(fname,".csv", sep=""), header=TRUE)
+rownames(cnts) <- cnts$X
+cnts <- cnts[!(names(cnts) %in% c("X"))]
+
+coldata <- read.csv(paste(fname,"_coldata.csv", sep=""), header=TRUE)
+
+if (check == "Condition") {
+    dds <- DESeqDataSetFromMatrix(countData=cnts, colData=coldata, design=~Condition)
+    dds <- DESeq(dds)
+    write.csv(results(dds, c('Condition','Heat','Control')),file=paste(fname,"_deseq.csv", sep=""))
+} else if (check == "Injection") {
+    dds <- DESeqDataSetFromMatrix(countData=cnts, colData=coldata, design=~Injection)
+    dds <- DESeq(dds)
+    write.csv(results(dds, c('Injection','PolyIC','Saline')),file=paste(fname,"_deseq.csv", sep=""))
+} else if (check == "Sac") {
+    dds <- DESeqDataSetFromMatrix(countData=cnts, colData=coldata, design=~Sac)
+    dds <- DESeq(dds)
+    write.csv(results(dds, c('Sac','TcMax','1Day')), file=paste(fname, "_deseq.csv", sep=""))
+} else {}
+
+#! py ->
+ranked = pd.read_csv(fname + '_deseq.csv',index_col=0,usecols=[0,2,6])
+padj = np.array(ranked['padj'].fillna(1))
+
+x = [10**-((i+13)/10) for i in range(20)]
+fig, ax = plt.subplots()
+ax.plot(x,[sum(padj < i) for i in x])
+ax.axvline(0.05,c='r')
+ax.annotate(str(sum(padj < 0.05)),xy=(0.045, sum(padj < 0.05)))
+ax.axvline(0.001,c='r',linestyle=':')
+ax.annotate(str(sum(padj < 0.001)), xy=(0.001, sum(padj < 0.001)))
+ax.axhline(200,c='k',linestyle='--')
+
+ax.set_title(check + ' for ' + value)
+fig.savefig(fname+'.png')
