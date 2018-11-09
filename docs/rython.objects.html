@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module rython.objects</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="rython.html"><font color="#ffffff">rython</font></a>.objects</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/scv/packages/rython/rython/objects.py">/home/scv/packages/rython/rython/objects.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="pexpect.html">pexpect</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="rython.objects.html#MatlabObject">MatlabObject</a>
+</font></dt><dt><font face="helvetica, arial"><a href="rython.objects.html#RObject">RObject</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MatlabObject">class <strong>MatlabObject</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;Matlab&nbsp;scripting<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="MatlabObject-__init__"><strong>__init__</strong></a>(self, connect=True)</dt><dd><tt>If&nbsp;@connect,&nbsp;calls&nbsp;`connect`&nbsp;for&nbsp;you.</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-close"><strong>close</strong></a>(self, force=False)</dt><dd><tt>Calls&nbsp;Matlab's&nbsp;`exit`&nbsp;command<br>
+If&nbsp;@force,&nbsp;bypasses&nbsp;`finish.m`</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-connect"><strong>connect</strong></a>(self)</dt><dd><tt>Make&nbsp;a&nbsp;Matlab&nbsp;command-line&nbsp;environment<br>
+Does&nbsp;nothing&nbsp;if&nbsp;`isalive`;&nbsp;use&nbsp;`reconnect`</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-expect"><strong>expect</strong></a>(self, phrase)</dt><dd><tt>Wraps&nbsp;`pexpect.spawn.expect`</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-reconnect"><strong>reconnect</strong></a>(self, force=False)</dt><dd><tt>Calls&nbsp;`close`&nbsp;if&nbsp;already&nbsp;`self.<strong>isalive</strong>,&nbsp;and&nbsp;calls&nbsp;`connect`.<br>
+If&nbsp;@force,&nbsp;doesn't&nbsp;try&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;and&nbsp;just&nbsp;starts&nbsp;a&nbsp;new&nbsp;environment.</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-send"><strong>send</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface<br>
+Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-sendline"><strong>sendline</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;waits&nbsp;for&nbsp;processing</tt></dd></dl>
+
+<dl><dt><a name="MatlabObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Sends&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;sequentially</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>before</strong></dt>
+<dd><tt>Returns&nbsp;the&nbsp;value&nbsp;Matlab&nbsp;returned&nbsp;in&nbsp;the&nbsp;last&nbsp;call<br>
+Will&nbsp;have&nbsp;non-value&nbsp;str&nbsp;characters:&nbsp;e.g.&nbsp;\r,&nbsp;\n</tt></dd>
+</dl>
+<dl><dt><strong>isalive</strong></dt>
+<dd><tt>Returns&nbsp;whether&nbsp;is&nbsp;alive</tt></dd>
+</dl>
+<dl><dt><strong>who</strong></dt>
+<dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;Matlab&nbsp;environment</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="RObject">class <strong>RObject</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;R&nbsp;scripting<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="RObject-__init__"><strong>__init__</strong></a>(self, connect=True, load=False)</dt><dd><tt>If&nbsp;@connect,&nbsp;calls&nbsp;`connect`&nbsp;for&nbsp;you&nbsp;with&nbsp;@load.</tt></dd></dl>
+
+<dl><dt><a name="RObject-close"><strong>close</strong></a>(self, save='no', runLast=True)</dt><dd><tt>Calls&nbsp;R&nbsp;`q()`&nbsp;to&nbsp;quit<br>
+All&nbsp;arguments&nbsp;passed&nbsp;to&nbsp;`q`<br>
+&nbsp;<br>
+@save&nbsp;tells&nbsp;whether&nbsp;or&nbsp;not&nbsp;to&nbsp;save&nbsp;the&nbsp;environment;&nbsp;['no','yes']<br>
+@runLast&nbsp;tells&nbsp;R&nbsp;whether&nbsp;to&nbsp;run&nbsp;the&nbsp;`.Last()`&nbsp;function&nbsp;before&nbsp;exiting.</tt></dd></dl>
+
+<dl><dt><a name="RObject-connect"><strong>connect</strong></a>(self, load=False)</dt><dd><tt>Make&nbsp;an&nbsp;R&nbsp;environment<br>
+Does&nbsp;nothing&nbsp;if&nbsp;`isalive`;&nbsp;use&nbsp;`reconnect`<br>
+If&nbsp;@load,&nbsp;loads&nbsp;existing&nbsp;environment&nbsp;in&nbsp;the&nbsp;current&nbsp;location.</tt></dd></dl>
+
+<dl><dt><a name="RObject-expect"><strong>expect</strong></a>(self, phrase)</dt><dd><tt>Wraps&nbsp;`pexpect.spawn.expect`</tt></dd></dl>
+
+<dl><dt><a name="RObject-reconnect"><strong>reconnect</strong></a>(self, force=False, load=False)</dt><dd><tt>Calls&nbsp;`close`&nbsp;if&nbsp;already&nbsp;`self.<strong>isalive</strong>,&nbsp;and&nbsp;calls&nbsp;`connect`&nbsp;with&nbsp;@load.<br>
+If&nbsp;@force,&nbsp;doesn't&nbsp;try&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;and&nbsp;just&nbsp;starts&nbsp;a&nbsp;new&nbsp;environment.</tt></dd></dl>
+
+<dl><dt><a name="RObject-send"><strong>send</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface<br>
+Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.</tt></dd></dl>
+
+<dl><dt><a name="RObject-sendline"><strong>sendline</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;waits&nbsp;for&nbsp;processing</tt></dd></dl>
+
+<dl><dt><a name="RObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Sends&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;sequentially</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>before</strong></dt>
+<dd><tt>Returns&nbsp;the&nbsp;value&nbsp;R&nbsp;returned&nbsp;in&nbsp;the&nbsp;last&nbsp;call<br>
+Will&nbsp;have&nbsp;non-value&nbsp;str&nbsp;characters:&nbsp;e.g.&nbsp;\r,&nbsp;\n</tt></dd>
+</dl>
+<dl><dt><strong>isalive</strong></dt>
+<dd><tt>Returns&nbsp;whether&nbsp;is&nbsp;alive</tt></dd>
+</dl>
+<dl><dt><strong>who</strong></dt>
+<dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;R&nbsp;environment</tt></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>
