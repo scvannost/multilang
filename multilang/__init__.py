@@ -20,7 +20,7 @@ R's file interactions use R.matlab.
 Matlab's file interactions use the `load` and `save` commands.
 Bash's interactions are done using an environment dict, starting with os.environ.
 
-Bash commands are run using Python's `subprocess.run` with `shell=True`.
+Bash commands are run using Python's `subprocess.run` with `shell=True, executable='/bin/bash'`.
 As Matlab is running interactively, it is a script and therefore function definitions are not allowed.
 """
 
@@ -965,7 +965,7 @@ Any built-in Python/Multilang function can also be used in this way.
 						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
 						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
 				# [print(i) for i in _to_exec]
-				subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}).check_returncode()
+				subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash').check_returncode()
 
 				_environ = os.environ.copy()
 				_counter = _end+1 if _end == len(_lines)-1 else _end
@@ -1610,7 +1610,7 @@ Also returns as a dict
 		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
 		while len(code[-1]) < 1:
 			code = code[:-1]
-		subprocess.run('\n'.join(code), shell=True, env={k:str(v) for k,v in self._environ.items()}).check_returncode()
+		subprocess.run('\n'.join(code), shell=True, env={k:str(v) for k,v in self._environ.items()}, executable='/bin/bash').check_returncode()
 		self._environ = os.environ.copy()
 
 	def py_to_bash(self, names):

@@ -3,12 +3,12 @@ from distutils.core import setup
 setup(
   name = 'multilang',
   packages = ['multilang'],
-  version = '0.1.1a5',
+  version = '0.1.1a6',
   license='MIT',
   description = 'Allows for running code in mutliple languages',
   author = 'SC van Nostrand',
   author_email = 'scvannost@gmail.com',
-  download_url = 'https://github.com/scvannost/multilang/archive/0.1.1a5.tar.gz',
+  download_url = 'https://github.com/scvannost/multilang/archive/0.1.1a6.tar.gz',
   url = 'https://github.com/scvannost/multilang',
   keywords = ['R', 'Matlab', 'environment'],
   install_requires=[
