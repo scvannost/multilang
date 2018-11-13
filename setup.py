@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-  name = 'mutlilang',
+  name = 'multilang',
   packages = ['multilang'],
   version = '0.1.1a2',
   license='MIT',
