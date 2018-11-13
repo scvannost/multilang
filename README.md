@@ -10,13 +10,8 @@ from within Python, and that being able to write a file that could execute in
 both languages was really appealing.
 
 ## Install
-<<<<<<< HEAD
 `pip install multilang`  
 Import as `import multilang`
-=======
-`pip install matrython`  
-Import as rython
->>>>>>> 31bcc41a9502037efb39b217d177d5cb9a4a98af
 
 ### Development
 Current build is 0.1.0  
