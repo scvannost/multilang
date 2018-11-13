@@ -1,5 +1,5 @@
-# Rython
-A way to write code in Python, R, and/or Matlab in the same file
+# Multilang
+A way to write code in Python, R, Matlab, and/or bash in the same file
 
 ### Why
 In computational biology, there are many tools that exist in either only Python
@@ -9,38 +9,55 @@ comfortable. I decided that I wanted to be able to interact with an R environmen
 from within Python, and that being able to write a file that could execute in
 both languages was really appealing.
 
-## install
-`pip install matrython`  
-Import as rython
+## Install
+`pip install multilang`  
+Import as `import multilang`
 
 ### Development
 Current build is 0.1.0  
 Developed solely by me  
-If you find any bugs, please place an Issue on the github.
+If you find any bugs, please place an Issue on [github](https://github.com/scvannost/multilang).
 
 ## Features
 The 2 main use cases are:  
-1. `python -m rython path/to/file.ry`
+1. `python -m multilang path/to/file.mul`
 2.
 ~~~python
-#! rython
-ry = rython.Master()
-ry.r('...')
+#! multilang
+ml = multilang.Master()
+ml.r('...')
 # or
-rython.as_rython('/path/to/file.ry')
+multilang.as_multilang('/path/to/file.mul')
+# or
+multilang.as_multilang('''code here...''')
 ~~~
 
-The first shows how the module can be used to run Rython .ry scripts directly. It
-calls `rython.as_rython()` on the given file.  
-The second shows the interact form of Rython, using its `Master` class. This allows
-for an interactive experience writing in 2 (or 3) languages.
+The first shows how the module can be used to run Multilang .mul scripts directly. It
+calls `multilang.as_multilang()` on the given file.  
+The second shows the interact form of Multilang, using its `Master` class. This allows
+for an interactive experience writing in 2 to 4 languages.
 
-Either way, you get full access to the Python, R, and Matlab environments; can use
+Either way, you get full access to the Python, R, Matlab, and shell environments; can use
 any library or built-in function; and can build on top of these frameworks to do
 crazy things and bodge things quickly.
 
 ### Example code
-Examples will be placed in the `examples` folder  
+Examples will be placed in the `examples` folder 
+
+### Changelog
+v0.1.1:
+  - name change
+  - Suggested extension changed from `.ry` to `.mul` 
+  - added bash support
+  - calling `python -m multilang` on Windows calls `as_multilang_windows`
+
+matrython==0.1.0:
+  - name change to upload to PyPI
+  - bug fixes
+
+rython==0:
+  - Python/R/Matlab support
+  - Unit tests 
 
 ## MIT License
 Copyright (C) 2018 SC van Nostrand
@@ -50,9 +67,11 @@ of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
-furnished to do so.  
+furnished to do so, subject to the following conditions:
+
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.  
+copies or substantial portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE

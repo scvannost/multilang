@@ -1,34 +1,36 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html><head><title>Python: package rython</title>
+<html><head><title>Python: package multilang</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 </head><body bgcolor="#f0f0f8">
 
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
 <tr bgcolor="#7799ee">
 <td valign=bottom>&nbsp;<br>
-<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>rython</strong></big></big></font></td
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>multilang</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/scv/packages/rython/rython/__init__.py">/home/scv/packages/rython/rython/__init__.py</a></font></td></tr></table>
-    <p><tt>This&nbsp;module&nbsp;runs&nbsp;Python,&nbsp;R,&nbsp;and&nbsp;Matlab&nbsp;code&nbsp;in&nbsp;the&nbsp;same&nbsp;file.<br>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/scv/packages/multilang/multilang/__init__.py">/home/scv/packages/multilang/multilang/__init__.py</a></font></td></tr></table>
+    <p><tt>This&nbsp;module&nbsp;runs&nbsp;Python,&nbsp;R,&nbsp;Matlab,&nbsp;and&nbsp;bash&nbsp;code&nbsp;in&nbsp;the&nbsp;same&nbsp;file.<br>
 Note&nbsp;that&nbsp;the&nbsp;underlying&nbsp;connection&nbsp;relies&nbsp;on&nbsp;`pexpect`,&nbsp;which&nbsp;does&nbsp;not&nbsp;support&nbsp;a&nbsp;Windows&nbsp;environment.<br>
 Therefore&nbsp;this&nbsp;will&nbsp;not&nbsp;work&nbsp;in&nbsp;a&nbsp;Windows&nbsp;environment.<br>
 &nbsp;<br>
 Expected&nbsp;uses&nbsp;are:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;In&nbsp;Python&nbsp;(interactive&nbsp;or&nbsp;script):<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;import&nbsp;rython<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;fname&nbsp;=&nbsp;'path/to/file.ry'<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;ry&nbsp;=&nbsp;rython.<a href="#-as_rython">as_rython</a>(fname)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;import&nbsp;multilang<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;fname&nbsp;=&nbsp;'path/to/file.mul'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;ml&nbsp;=&nbsp;multilang.<a href="#-as_multilang">as_multilang</a>(fname)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;#&nbsp;or&nbsp;you&nbsp;can&nbsp;do<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;ry&nbsp;=&nbsp;rython.<a href="#Master">Master</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;ml&nbsp;=&nbsp;multilang.<a href="#Master">Master</a>()<br>
 &nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;From&nbsp;Terminal:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;python&nbsp;-m&nbsp;rython&nbsp;path/to/file.ry<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$&nbsp;python&nbsp;-m&nbsp;multilang&nbsp;path/to/file.mul<br>
 &nbsp;<br>
-Passing&nbsp;variables&nbsp;between&nbsp;environments&nbsp;is&nbsp;done&nbsp;using&nbsp;temporary&nbsp;.mat&nbsp;files.<br>
+Passing&nbsp;variables&nbsp;between&nbsp;most&nbsp;environments&nbsp;is&nbsp;done&nbsp;using&nbsp;temporary&nbsp;.mat&nbsp;files.<br>
 Python's&nbsp;file&nbsp;interactions&nbsp;use&nbsp;scipy.io.<br>
 R's&nbsp;file&nbsp;interactions&nbsp;use&nbsp;R.matlab.<br>
 Matlab's&nbsp;file&nbsp;interactions&nbsp;use&nbsp;the&nbsp;`load`&nbsp;and&nbsp;`save`&nbsp;commands.<br>
+Bash's&nbsp;interactions&nbsp;are&nbsp;done&nbsp;using&nbsp;an&nbsp;environment&nbsp;dict,&nbsp;starting&nbsp;with&nbsp;os.environ.<br>
 &nbsp;<br>
+Bash&nbsp;commands&nbsp;are&nbsp;run&nbsp;using&nbsp;Python's&nbsp;`subprocess.run`&nbsp;with&nbsp;`shell=True`.<br>
 As&nbsp;Matlab&nbsp;is&nbsp;running&nbsp;interactively,&nbsp;it&nbsp;is&nbsp;a&nbsp;script&nbsp;and&nbsp;therefore&nbsp;function&nbsp;definitions&nbsp;are&nbsp;not&nbsp;allowed.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -37,8 +39,8 @@ As&nbsp;Matlab&nbsp;is&nbsp;running&nbsp;interactively,&nbsp;it&nbsp;is&nbsp;a&n
 <font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="rython.__main__.html">__main__</a><br>
-</td><td width="25%" valign=top><a href="rython.objects.html">objects</a><br>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="multilang.__main__.html">__main__</a><br>
+</td><td width="25%" valign=top><a href="multilang.objects.html">objects</a><br>
 </td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#ee77aa">
@@ -50,7 +52,7 @@ As&nbsp;Matlab&nbsp;is&nbsp;running&nbsp;interactively,&nbsp;it&nbsp;is&nbsp;a&n
 <dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
 </font></dt><dd>
 <dl>
-<dt><font face="helvetica, arial"><a href="rython.html#Master">Master</a>
+<dt><font face="helvetica, arial"><a href="multilang.html#Master">Master</a>
 </font></dt></dl>
 </dd>
 </dl>
@@ -64,16 +66,33 @@ As&nbsp;Matlab&nbsp;is&nbsp;running&nbsp;interactively,&nbsp;it&nbsp;is&nbsp;a&n
 <td colspan=2><tt>An&nbsp;<a href="builtins.html#object">object</a>&nbsp;that&nbsp;allows&nbsp;for&nbsp;interfacing&nbsp;with&nbsp;both&nbsp;R&nbsp;and&nbsp;Matlab&nbsp;environments.<br>
 Relies&nbsp;on&nbsp;RObject&nbsp;and&nbsp;MatlabObject&nbsp;classes.<br>
 &nbsp;<br>
-Unlike&nbsp;`<a href="#-as_rython">as_rython</a>()`,&nbsp;do&nbsp;not&nbsp;pass&nbsp;misformatted&nbsp;comments&nbsp;to&nbsp;the&nbsp;R&nbsp;(no&nbsp;%)&nbsp;or&nbsp;Matlab&nbsp;(no&nbsp;#)&nbsp;environments.<br>
+Unlike&nbsp;`<a href="#-as_multilang">as_multilang</a>()`,&nbsp;do&nbsp;not&nbsp;pass&nbsp;misformatted&nbsp;comments&nbsp;to&nbsp;the&nbsp;R/bash&nbsp;(no&nbsp;%)&nbsp;or&nbsp;Matlab&nbsp;(no&nbsp;#)&nbsp;environments.<br>
 &nbsp;<br>
 m-,&nbsp;mat-,&nbsp;and&nbsp;matlab-based&nbsp;function&nbsp;names&nbsp;are&nbsp;all&nbsp;supported.<br>
 mat&nbsp;is&nbsp;the&nbsp;base&nbsp;implementation,&nbsp;the&nbsp;others&nbsp;just&nbsp;wrap.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="Master-__init__"><strong>__init__</strong></a>(self, r=True, mat=True, load_r=False, r_object=None, mat_object=None, m=True, matlab=True)</dt><dd><tt>@r&nbsp;and&nbsp;@mat&nbsp;specify&nbsp;whether&nbsp;to&nbsp;connect&nbsp;to&nbsp;R&nbsp;and&nbsp;Matlab&nbsp;environments&nbsp;respectively.<br>
+<dl><dt><a name="Master-__init__"><strong>__init__</strong></a>(self, r=True, mat=True, load_r=False, r_object=None, mat_object=None, environ=None, m=True, matlab=True)</dt><dd><tt>@r&nbsp;and&nbsp;@mat&nbsp;specify&nbsp;whether&nbsp;to&nbsp;connect&nbsp;to&nbsp;R&nbsp;and&nbsp;Matlab&nbsp;environments&nbsp;respectively.<br>
 These&nbsp;connections&nbsp;can&nbsp;be&nbsp;made&nbsp;later&nbsp;using&nbsp;`connect`,&nbsp;`connect_r`,&nbsp;or&nbsp;`connect_mat`.<br>
 You&nbsp;can&nbsp;pass&nbsp;in&nbsp;existing&nbsp;RObjects&nbsp;or&nbsp;MatlabObjects&nbsp;through&nbsp;@r_object&nbsp;and&nbsp;@mat_object&nbsp;to&nbsp;wrap&nbsp;them.<br>
 For&nbsp;@load,&nbsp;see&nbsp;`Robject.connect`.</tt></dd></dl>
+
+<dl><dt><a name="Master-bash"><strong>bash</strong></a>(self, code)</dt><dd><tt>Run&nbsp;bash&nbsp;code</tt></dd></dl>
+
+<dl><dt><a name="Master-bash_to_mat"><strong>bash_to_mat</strong></a>(self, names)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;shell&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str].</tt></dd></dl>
+
+<dl><dt><a name="Master-bash_to_py"><strong>bash_to_py</strong></a>(self, names, load=True)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;shell&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str].<br>
+&nbsp;<br>
+Returns&nbsp;values&nbsp;as&nbsp;dict<br>
+Use&nbsp;`globals().update(<a href="#Master-bash_to_py">bash_to_py</a>(@names))`&nbsp;to&nbsp;add&nbsp;directly&nbsp;to&nbsp;local&nbsp;session</tt></dd></dl>
+
+<dl><dt><a name="Master-bash_to_r"><strong>bash_to_r</strong></a>(self, names)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;shell&nbsp;to&nbsp;the&nbsp;R&nbsp;environment<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str].</tt></dd></dl>
 
 <dl><dt><a name="Master-connect"><strong>connect</strong></a>(self, r=True, mat=True, load_r=False)</dt><dd><tt>Makes&nbsp;connections&nbsp;to&nbsp;R&nbsp;if&nbsp;@r&nbsp;and&nbsp;Matlab&nbsp;if&nbsp;@mat<br>
 Does&nbsp;nothing&nbsp;if&nbsp;the&nbsp;connection&nbsp;already&nbsp;exists.<br>
@@ -95,18 +114,21 @@ If&nbsp;a&nbsp;variable&nbsp;name&nbsp;is&nbsp;repeated,&nbsp;@precedence&nbsp;s
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;None,&nbsp;raises&nbsp;an&nbsp;Exception&nbsp;if&nbsp;there&nbsp;is&nbsp;a&nbsp;repeated&nbsp;name.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;'all',&nbsp;prefixes&nbsp;the&nbsp;variable&nbsp;name&nbsp;with&nbsp;the&nbsp;environment<br>
 @precedence&nbsp;in&nbsp;['r',&nbsp;'mat',&nbsp;'all',&nbsp;None]<br>
-Use&nbsp;`globals().update(<a href="#Master-r_to_py">r_to_py</a>(@names))`&nbsp;to&nbsp;add&nbsp;directly&nbsp;to&nbsp;local&nbsp;session</tt></dd></dl>
+Use&nbsp;`globals().update(<a href="#Master-dump_all">dump_all</a>())`&nbsp;to&nbsp;add&nbsp;directly&nbsp;to&nbsp;local&nbsp;session</tt></dd></dl>
 
-<dl><dt><a name="Master-dump_m"><strong>dump_m</strong></a>(self)</dt><dd><tt>See&nbsp;`dump_mat`</tt></dd></dl>
-
-<dl><dt><a name="Master-dump_mat"><strong>dump_mat</strong></a>(self)</dt><dd><tt>Move&nbsp;all&nbsp;the&nbsp;vars&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+<dl><dt><a name="Master-dump_bash"><strong>dump_bash</strong></a>(self, load=True)</dt><dd><tt>Move&nbsp;all&nbsp;the&nbsp;vars&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
 Also&nbsp;returns&nbsp;as&nbsp;a&nbsp;dict</tt></dd></dl>
 
-<dl><dt><a name="Master-dump_matlab"><strong>dump_matlab</strong></a>(self)</dt><dd><tt>See&nbsp;`dump_mat`</tt></dd></dl>
+<dl><dt><a name="Master-dump_m"><strong>dump_m</strong></a>(self, load=True)</dt><dd><tt>See&nbsp;`dump_mat`</tt></dd></dl>
+
+<dl><dt><a name="Master-dump_mat"><strong>dump_mat</strong></a>(self, load=True)</dt><dd><tt>Move&nbsp;all&nbsp;the&nbsp;vars&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+Also&nbsp;returns&nbsp;as&nbsp;a&nbsp;dict</tt></dd></dl>
+
+<dl><dt><a name="Master-dump_matlab"><strong>dump_matlab</strong></a>(self, load=True)</dt><dd><tt>See&nbsp;`dump_mat`</tt></dd></dl>
 
 <dl><dt><a name="Master-dump_py"><strong>dump_py</strong></a>(self)</dt><dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:value}&nbsp;for&nbsp;the&nbsp;variables&nbsp;in&nbsp;the&nbsp;Python&nbsp;environment</tt></dd></dl>
 
-<dl><dt><a name="Master-dump_r"><strong>dump_r</strong></a>(self)</dt><dd><tt>Move&nbsp;all&nbsp;the&nbsp;vars&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+<dl><dt><a name="Master-dump_r"><strong>dump_r</strong></a>(self, load=True)</dt><dd><tt>Move&nbsp;all&nbsp;the&nbsp;vars&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
 Also&nbsp;returns&nbsp;as&nbsp;a&nbsp;dict</tt></dd></dl>
 
 <dl><dt><a name="Master-dump_to_m"><strong>dump_to_m</strong></a>(self)</dt><dd><tt>See&nbsp;`dump_to_mat`</tt></dd></dl>
@@ -127,13 +149,17 @@ Use&nbsp;`<a href="#Master-load_from_dict">load_from_dict</a>(globals())`&nbsp;t
 
 <dl><dt><a name="Master-m"><strong>m</strong></a>(self, code)</dt><dd><tt>See&nbsp;`mat`</tt></dd></dl>
 
+<dl><dt><a name="Master-m_to_bash"><strong>m_to_bash</strong></a>(self, names)</dt><dd><tt>See&nbsp;`mat_to_bash`</tt></dd></dl>
+
 <dl><dt><a name="Master-m_to_py"><strong>m_to_py</strong></a>(self, names)</dt><dd><tt>See&nbsp;`mat_to_py`</tt></dd></dl>
 
 <dl><dt><a name="Master-m_to_r"><strong>m_to_r</strong></a>(self, names)</dt><dd><tt>See&nbsp;mat_to_r</tt></dd></dl>
 
 <dl><dt><a name="Master-mat"><strong>mat</strong></a>(self, code)</dt><dd><tt>Run&nbsp;matlab&nbsp;code.&nbsp;Does&nbsp;not&nbsp;append&nbsp;a&nbsp;semicolon</tt></dd></dl>
 
-<dl><dt><a name="Master-mat_to_py"><strong>mat_to_py</strong></a>(self, names)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+<dl><dt><a name="Master-mat_to_bash"><strong>mat_to_bash</strong></a>(self, names)</dt><dd><tt>Move&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;bash&nbsp;environment</tt></dd></dl>
+
+<dl><dt><a name="Master-mat_to_py"><strong>mat_to_py</strong></a>(self, names, load=True)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
 Also&nbsp;returns&nbsp;values&nbsp;as&nbsp;dict<br>
 Use&nbsp;`globals().update(<a href="#Master-mat_to_py">mat_to_py</a>(@names))`&nbsp;to&nbsp;add&nbsp;directly&nbsp;to&nbsp;local&nbsp;session</tt></dd></dl>
 
@@ -141,9 +167,15 @@ Use&nbsp;`globals().update(<a href="#Master-mat_to_py">mat_to_py</a>(@names))`&n
 
 <dl><dt><a name="Master-matlab"><strong>matlab</strong></a>(self, code)</dt><dd><tt>See&nbsp;`mat`</tt></dd></dl>
 
+<dl><dt><a name="Master-matlab_to_bash"><strong>matlab_to_bash</strong></a>(self, names)</dt><dd><tt>See&nbsp;`mat_to_bash`</tt></dd></dl>
+
 <dl><dt><a name="Master-matlab_to_py"><strong>matlab_to_py</strong></a>(self, names)</dt><dd><tt>See&nbsp;`mat_to_py`</tt></dd></dl>
 
 <dl><dt><a name="Master-matlab_to_r"><strong>matlab_to_r</strong></a>(self, names)</dt><dd><tt>See&nbsp;mat_to_r</tt></dd></dl>
+
+<dl><dt><a name="Master-py_to_bash"><strong>py_to_bash</strong></a>(self, names)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specificed&nbsp;to&nbsp;the&nbsp;shell.<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]</tt></dd></dl>
 
 <dl><dt><a name="Master-py_to_m"><strong>py_to_m</strong></a>(self, names)</dt><dd><tt>See&nbsp;`py_to_mat`</tt></dd></dl>
 
@@ -160,13 +192,15 @@ Use&nbsp;@as_array&nbsp;=&nbsp;True&nbsp;to&nbsp;pass&nbsp;pd.DataFrame&nbsp;as&
 
 <dl><dt><a name="Master-r"><strong>r</strong></a>(self, code)</dt><dd><tt>Run&nbsp;R&nbsp;code</tt></dd></dl>
 
+<dl><dt><a name="Master-r_to_bash"><strong>r_to_bash</strong></a>(self, names)</dt><dd><tt>Move&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;bash&nbsp;environment</tt></dd></dl>
+
 <dl><dt><a name="Master-r_to_m"><strong>r_to_m</strong></a>(self, names)</dt><dd><tt>See&nbsp;`r_to_mat`</tt></dd></dl>
 
 <dl><dt><a name="Master-r_to_mat"><strong>r_to_mat</strong></a>(self, names)</dt><dd><tt>Move&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment</tt></dd></dl>
 
 <dl><dt><a name="Master-r_to_matlab"><strong>r_to_matlab</strong></a>(self, names)</dt><dd><tt>See&nbsp;`r_to_mat`</tt></dd></dl>
 
-<dl><dt><a name="Master-r_to_py"><strong>r_to_py</strong></a>(self, names)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
+<dl><dt><a name="Master-r_to_py"><strong>r_to_py</strong></a>(self, names, load=True)</dt><dd><tt>Load&nbsp;the&nbsp;vars&nbsp;in&nbsp;@names&nbsp;from&nbsp;the&nbsp;R&nbsp;environment&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment<br>
 Also&nbsp;returns&nbsp;values&nbsp;as&nbsp;dict<br>
 Use&nbsp;`globals().update(<a href="#Master-r_to_py">r_to_py</a>(@names))`&nbsp;to&nbsp;add&nbsp;directly&nbsp;to&nbsp;local&nbsp;session</tt></dd></dl>
 
@@ -210,6 +244,9 @@ Data descriptors defined here:<br>
 <dl><dt><strong>who</strong></dt>
 <dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{'mat':&nbsp;`who_m`,&nbsp;'r':&nbsp;`who_r`,&nbsp;'py':`who_py`}</tt></dd>
 </dl>
+<dl><dt><strong>who_bash</strong></dt>
+<dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;the&nbsp;variable&nbsp;names&nbsp;in&nbsp;R</tt></dd>
+</dl>
 <dl><dt><strong>who_m</strong></dt>
 <dd><tt>See&nbsp;`who_mat`</tt></dd>
 </dl>
@@ -232,29 +269,29 @@ Data descriptors defined here:<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-DEFAULT_DUMP"><strong>DEFAULT_DUMP</strong></a> = dump_dict(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;variables.<br>
+<td width="100%"><dl><dt><a name="-DEFAULT_DUMP"><strong>DEFAULT_DUMP</strong></a> = dump_dict(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;Python&nbsp;variables.<br>
 Use&nbsp;`globals().update(<a href="#-dump">dump</a>())`&nbsp;to&nbsp;bring&nbsp;variables&nbsp;into&nbsp;the&nbsp;global&nbsp;scope,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;`locals().update(<a href="#-dump">dump</a>())`&nbsp;for&nbsp;the&nbsp;local&nbsp;scope.<br>
 @_file&nbsp;is&nbsp;optional&nbsp;and&nbsp;ignored&nbsp;if&nbsp;given.<br>
 **kwargs&nbsp;are&nbsp;ignored.</tt></dd></dl>
- <dl><dt><a name="-DEFAULT_DUMPS"><strong>DEFAULT_DUMPS</strong></a> = dumps_json(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;JSON-formatted&nbsp;str&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;variables.<br>
+ <dl><dt><a name="-DEFAULT_DUMPS"><strong>DEFAULT_DUMPS</strong></a> = dumps_json(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;JSON-formatted&nbsp;str&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;Python&nbsp;variables.<br>
 **kwargs&nbsp;are&nbsp;passed&nbsp;to&nbsp;`json.dumps`<br>
 @_file&nbsp;is&nbsp;optional&nbsp;and&nbsp;ignored&nbsp;if&nbsp;given.</tt></dd></dl>
  <dl><dt><a name="-as_array"><strong>as_array</strong></a>(var:str, extras:str='True')</dt><dd><tt>Built-in&nbsp;function&nbsp;to&nbsp;pass&nbsp;as&nbsp;an&nbsp;np.array&nbsp;of&nbsp;values<br>
 For&nbsp;some&nbsp;special&nbsp;types,&nbsp;additional&nbsp;information&nbsp;is&nbsp;also&nbsp;passed&nbsp;when&nbsp;@extras&nbsp;is&nbsp;'True'.<br>
 If&nbsp;it&nbsp;is&nbsp;a&nbsp;pd.DataFrame,&nbsp;df_index&nbsp;and&nbsp;df_columns&nbsp;are&nbsp;also&nbsp;passed&nbsp;as&nbsp;lists.<br>
 &nbsp;<br>
-To&nbsp;define&nbsp;you&nbsp;own&nbsp;wrapping&nbsp;functions,&nbsp;use&nbsp;the&nbsp;@rython&nbsp;decorator&nbsp;in&nbsp;the&nbsp;Python&nbsp;environment.<br>
+To&nbsp;define&nbsp;you&nbsp;own&nbsp;wrapping&nbsp;functions,&nbsp;use&nbsp;the&nbsp;@multilang&nbsp;decorator&nbsp;in&nbsp;the&nbsp;Python&nbsp;environment.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Currently&nbsp;only&nbsp;available&nbsp;from&nbsp;Python&nbsp;to&nbsp;another&nbsp;environment.<br>
 It&nbsp;should&nbsp;take&nbsp;only&nbsp;str&nbsp;as&nbsp;inputs,&nbsp;with&nbsp;its&nbsp;first&nbsp;as&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;variable.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Local&nbsp;variables&nbsp;can&nbsp;be&nbsp;accessed&nbsp;by&nbsp;_VARIABLES[name],&nbsp;see&nbsp;example.<br>
 It&nbsp;should&nbsp;return&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;of&nbsp;things&nbsp;to&nbsp;pass&nbsp;through&nbsp;`sio.savemat`&nbsp;into&nbsp;the&nbsp;next&nbsp;environment.<br>
 &nbsp;<br>
 The&nbsp;definition&nbsp;of&nbsp;this&nbsp;function&nbsp;follows&nbsp;as&nbsp;an&nbsp;example:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1]&nbsp;#!&nbsp;rython<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1]&nbsp;#!&nbsp;multilang<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2]&nbsp;import&nbsp;pandas&nbsp;as&nbsp;pd<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[3]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[4]&nbsp;@rython<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[4]&nbsp;@multilang<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[5]&nbsp;def&nbsp;<a href="#-as_array">as_array</a>(var:&nbsp;str,&nbsp;extras:&nbsp;str&nbsp;=&nbsp;'True'):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[6]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;obj&nbsp;=&nbsp;_VARIABLES[var]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[7]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;extras&nbsp;!=&nbsp;'True':<br>
@@ -265,7 +302,7 @@ The&nbsp;definition&nbsp;of&nbsp;this&nbsp;function&nbsp;follows&nbsp;as&nbsp;an
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[12]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var+'_columns':&nbsp;obj.columns.values.tolist()}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[13]&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[14]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;{var:&nbsp;np.array(obj)}</tt></dd></dl>
- <dl><dt><a name="-as_rython"><strong>as_rython</strong></a>(_lines, _r_object=None, _mat_object=None, **kwargs)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;rython&nbsp;coding.<br>
+ <dl><dt><a name="-as_multilang"><strong>as_multilang</strong></a>(_lines, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc908&gt;, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353ccb70&gt;, _environ=None, **kwargs)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;multilang&nbsp;coding.<br>
 Takes&nbsp;an&nbsp;IO&nbsp;buffer&nbsp;with&nbsp;`readlines&nbsp;-&gt;&nbsp;Iterable[Union[str,&nbsp;bytes]]`&nbsp;(preferred)&nbsp;or<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`read&nbsp;-&gt;&nbsp;Union[str,&nbsp;bytes]`&nbsp;method,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;Union[str,&nbsp;bytes]&nbsp;with&nbsp;line&nbsp;breaks,&nbsp;or<br>
@@ -274,25 +311,25 @@ You&nbsp;can&nbsp;pass&nbsp;@_r_object&nbsp;or&nbsp;@_mat_object&nbsp;to&nbsp;us
 kwargs&nbsp;are&nbsp;set&nbsp;as&nbsp;variables&nbsp;in&nbsp;the&nbsp;Python&nbsp;environment<br>
 Returns&nbsp;a&nbsp;`<a href="#Master">Master</a>`&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;environments&nbsp;used&nbsp;to&nbsp;run&nbsp;the&nbsp;script.<br>
 &nbsp;<br>
-"Shebangs"&nbsp;(i.e.&nbsp;#!&nbsp;or&nbsp;%!)&nbsp;are&nbsp;used&nbsp;as&nbsp;the&nbsp;statements&nbsp;to&nbsp;both&nbsp;say&nbsp;this&nbsp;is&nbsp;rython&nbsp;code<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;to&nbsp;switch&nbsp;between&nbsp;R&nbsp;and&nbsp;Python&nbsp;and&nbsp;Matlab.<br>
+"Shebangs"&nbsp;(i.e.&nbsp;#!&nbsp;or&nbsp;%!)&nbsp;are&nbsp;used&nbsp;as&nbsp;the&nbsp;statements&nbsp;to&nbsp;both&nbsp;say&nbsp;this&nbsp;is&nbsp;multilang&nbsp;code<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;to&nbsp;switch&nbsp;between&nbsp;R,&nbsp;Python,&nbsp;Matlab,&nbsp;and&nbsp;bash.<br>
 The&nbsp;file/str/bytes&nbsp;should&nbsp;read&nbsp;as&nbsp;so:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1]&nbsp;#!&nbsp;rython&nbsp;[R,&nbsp;Python,&nbsp;Matlab]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1]&nbsp;#!&nbsp;multilang&nbsp;[R,&nbsp;Python,&nbsp;Matlab,&nbsp;bash]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2]&nbsp;#&nbsp;code&nbsp;here`<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[3]&nbsp;#!&nbsp;R/Python/Matlab&nbsp;-&gt;&nbsp;vars<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[3]&nbsp;#!&nbsp;R/Python/Matlab/bash&nbsp;-&gt;&nbsp;vars<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[4]&nbsp;#&nbsp;code&nbsp;here<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[.]&nbsp;#&nbsp;...<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[n]&nbsp;#!&nbsp;Python&nbsp;-&gt;&nbsp;vars<br>
 &nbsp;<br>
-All&nbsp;rython&nbsp;scripts&nbsp;start&nbsp;with&nbsp;`#!&nbsp;rython`&nbsp;then&nbsp;an&nbsp;optional&nbsp;language.<br>
+All&nbsp;multilang&nbsp;scripts&nbsp;start&nbsp;with&nbsp;`#!&nbsp;multilang`&nbsp;then&nbsp;an&nbsp;optional&nbsp;language.<br>
 If&nbsp;no&nbsp;initial&nbsp;language&nbsp;is&nbsp;given,&nbsp;Python&nbsp;is&nbsp;assumed.<br>
-Scripts&nbsp;should&nbsp;end&nbsp;with&nbsp;a&nbsp;Python&nbsp;switch&nbsp;line&nbsp;if&nbsp;the&nbsp;code&nbsp;finishes&nbsp;in&nbsp;R&nbsp;to<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;retrieve&nbsp;any&nbsp;variables&nbsp;back&nbsp;into&nbsp;the&nbsp;Python&nbsp;environment.<br>
-The&nbsp;suggested&nbsp;extension&nbsp;for&nbsp;a&nbsp;rython&nbsp;file&nbsp;is&nbsp;.ry.<br>
+Scripts&nbsp;should&nbsp;end&nbsp;with&nbsp;a&nbsp;Python&nbsp;switch&nbsp;line&nbsp;to&nbsp;retrieve&nbsp;any&nbsp;variables&nbsp;back<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;into&nbsp;the&nbsp;Python&nbsp;environment.<br>
+The&nbsp;suggested&nbsp;extension&nbsp;for&nbsp;a&nbsp;multilang&nbsp;file&nbsp;is&nbsp;.mul.<br>
 &nbsp;<br>
 To&nbsp;switch&nbsp;languages,&nbsp;`#!&nbsp;&lt;lang&gt;&nbsp;-&gt;&nbsp;&lt;vars&gt;`&nbsp;is&nbsp;used&nbsp;to&nbsp;switched&nbsp;to&nbsp;&lt;lang&gt;.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;vars&gt;&nbsp;is&nbsp;an&nbsp;optional&nbsp;comma-separated&nbsp;list&nbsp;of&nbsp;variables&nbsp;to&nbsp;transfer&nbsp;between&nbsp;the&nbsp;environemnts.<br>
-Language&nbsp;names&nbsp;are&nbsp;NOT&nbsp;case-sensitive&nbsp;and&nbsp;depend&nbsp;only&nbsp;on&nbsp;the&nbsp;existence&nbsp;of&nbsp;'r',&nbsp;'p',&nbsp;or&nbsp;'m'.<br>
+Language&nbsp;names&nbsp;are&nbsp;NOT&nbsp;case-sensitive&nbsp;and&nbsp;depend&nbsp;only&nbsp;on&nbsp;the&nbsp;existence&nbsp;of&nbsp;'r',&nbsp;'p',&nbsp;'m',&nbsp;or&nbsp;'b'.<br>
 Spaces&nbsp;after&nbsp;shebangs&nbsp;are&nbsp;optional.<br>
 Variables&nbsp;to&nbsp;pass&nbsp;can&nbsp;also&nbsp;be&nbsp;wrapped&nbsp;in&nbsp;functions&nbsp;such&nbsp;as&nbsp;`as_array`.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;is&nbsp;currently&nbsp;only&nbsp;available&nbsp;when&nbsp;switching&nbsp;out&nbsp;of&nbsp;Python.<br>
@@ -301,67 +338,110 @@ Note&nbsp;that&nbsp;Python's&nbsp;modulo&nbsp;operator&nbsp;`%`&nbsp;is&nbsp;ove
 Use&nbsp;`<a href="#-mod">mod</a>(a,b)`&nbsp;to&nbsp;perform&nbsp;this&nbsp;option.<br>
 Python's&nbsp;`%=`&nbsp;is&nbsp;not&nbsp;affected.<br>
 &nbsp;<br>
-Use&nbsp;@rython&nbsp;to&nbsp;define&nbsp;a&nbsp;function&nbsp;in&nbsp;the&nbsp;rython&nbsp;space.<br>
+Use&nbsp;@multilang&nbsp;to&nbsp;define&nbsp;a&nbsp;function&nbsp;in&nbsp;the&nbsp;rython&nbsp;space.<br>
 This&nbsp;is&nbsp;useful&nbsp;for&nbsp;defining&nbsp;custom&nbsp;variables-wrapping&nbsp;functions&nbsp;to&nbsp;pass&nbsp;custom&nbsp;objects&nbsp;between&nbsp;environments.<br>
 See&nbsp;`as_array`&nbsp;for&nbsp;an&nbsp;explanation&nbsp;of&nbsp;how&nbsp;these&nbsp;work.<br>
-Any&nbsp;built-in&nbsp;Python/Rython&nbsp;function&nbsp;can&nbsp;also&nbsp;be&nbsp;used&nbsp;in&nbsp;this&nbsp;way.</tt></dd></dl>
- <dl><dt><a name="-as_rython_windows"><strong>as_rython_windows</strong></a>(_lines)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;rython&nbsp;coding&nbsp;on&nbsp;Windows.<br>
-Not&nbsp;yet&nbsp;implemented,&nbsp;but&nbsp;will&nbsp;recapitulate&nbsp;`as_rython`.</tt></dd></dl>
- <dl><dt><a name="-dump"><strong>dump</strong></a>(_file='', **kwargs)</dt><dd><tt>Defaults&nbsp;to&nbsp;`dump_dict`,&nbsp;and&nbsp;so&nbsp;returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;all&nbsp;local&nbsp;variables.<br>
+Any&nbsp;built-in&nbsp;Python/Multilang&nbsp;function&nbsp;can&nbsp;also&nbsp;be&nbsp;used&nbsp;in&nbsp;this&nbsp;way.</tt></dd></dl>
+ <dl><dt><a name="-as_multilang_windows"><strong>as_multilang_windows</strong></a>(_lines)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;rython&nbsp;coding&nbsp;on&nbsp;Windows.<br>
+Not&nbsp;yet&nbsp;implemented,&nbsp;but&nbsp;will&nbsp;recapitulate&nbsp;`as_multilang`.</tt></dd></dl>
+ <dl><dt><a name="-bash_to_mat"><strong>bash_to_mat</strong></a>(_line, _environ, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f883561d4a8&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_environ&nbsp;into&nbsp;Optional[_mat_object].<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
+@_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;MatObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
+ <dl><dt><a name="-bash_to_py"><strong>bash_to_py</strong></a>(_line, _environ, _load=True)</dt><dd><tt>If&nbsp;_load,&nbsp;move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;python&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_environ&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment.<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str].<br>
+If&nbsp;_load,&nbsp;updates&nbsp;the&nbsp;local&nbsp;multilang&nbsp;space&nbsp;to&nbsp;include&nbsp;these&nbsp;variables;&nbsp;you&nbsp;can&nbsp;recover&nbsp;them&nbsp;using<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<a href="#-dump">dump</a>()`&nbsp;or&nbsp;one&nbsp;of&nbsp;its&nbsp;alternatives.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt></dd></dl>
+ <dl><dt><a name="-bash_to_r"><strong>bash_to_r</strong></a>(_line, _environ, _r_object=&lt;multilang.objects.RObject object at 0x7f8853bc3f60&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_environ&nbsp;into&nbsp;Optional[_r_object].<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
+@_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
+&nbsp;<br>
+Returns&nbsp;an&nbsp;RObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
+ <dl><dt><a name="-dump"><strong>dump</strong></a>(_file='', **kwargs)</dt><dd><tt>Defaults&nbsp;to&nbsp;`dump_dict`,&nbsp;and&nbsp;so&nbsp;returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;all&nbsp;local&nbsp;Python&nbsp;variables.<br>
 Changing&nbsp;`DEFAULT_DUMP`&nbsp;changes&nbsp;this&nbsp;action.</tt></dd></dl>
- <dl><dt><a name="-dump_dict"><strong>dump_dict</strong></a>(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;variables.<br>
+ <dl><dt><a name="-dump_dict"><strong>dump_dict</strong></a>(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;dict&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;Python&nbsp;variables.<br>
 Use&nbsp;`globals().update(<a href="#-dump">dump</a>())`&nbsp;to&nbsp;bring&nbsp;variables&nbsp;into&nbsp;the&nbsp;global&nbsp;scope,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;`locals().update(<a href="#-dump">dump</a>())`&nbsp;for&nbsp;the&nbsp;local&nbsp;scope.<br>
 @_file&nbsp;is&nbsp;optional&nbsp;and&nbsp;ignored&nbsp;if&nbsp;given.<br>
 **kwargs&nbsp;are&nbsp;ignored.</tt></dd></dl>
  <dl><dt><a name="-dump_json"><strong>dump_json</strong></a>(_file, **kwargs)</dt><dd><tt>Takes&nbsp;@_file&nbsp;as&nbsp;&nbsp;a&nbsp;str&nbsp;that&nbsp;is&nbsp;the&nbsp;file&nbsp;name&nbsp;or&nbsp;a&nbsp;file_like&nbsp;with&nbsp;a&nbsp;`write`<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method&nbsp;and&nbsp;outputs&nbsp;all&nbsp;the&nbsp;local&nbsp;variables&nbsp;as&nbsp;a&nbsp;.json&nbsp;file.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method&nbsp;and&nbsp;outputs&nbsp;all&nbsp;the&nbsp;localPython&nbsp;&nbsp;variables&nbsp;as&nbsp;a&nbsp;.json&nbsp;file.<br>
 **kwargs&nbsp;are&nbsp;passed&nbsp;to&nbsp;`json.dump`</tt></dd></dl>
  <dl><dt><a name="-dump_mat"><strong>dump_mat</strong></a>(_file, **kwargs)</dt><dd><tt>Takes&nbsp;@_file&nbsp;as&nbsp;a&nbsp;str&nbsp;that&nbsp;is&nbsp;the&nbsp;file&nbsp;name&nbsp;or&nbsp;a&nbsp;file_like&nbsp;with&nbsp;a&nbsp;`write`<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method&nbsp;and&nbsp;outputs&nbsp;all&nbsp;the&nbsp;local&nbsp;variables&nbsp;as&nbsp;a&nbsp;.mat&nbsp;file.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method&nbsp;and&nbsp;outputs&nbsp;all&nbsp;the&nbsp;local&nbsp;Python&nbsp;variables&nbsp;as&nbsp;a&nbsp;.mat&nbsp;file.<br>
 **kwargs&nbsp;are&nbsp;passed&nbsp;to`&nbsp;scipy.io.savemat`.</tt></dd></dl>
- <dl><dt><a name="-dumps"><strong>dumps</strong></a>(**kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;str&nbsp;version&nbsp;of&nbsp;the&nbsp;local&nbsp;variables.<br>
+ <dl><dt><a name="-dumps"><strong>dumps</strong></a>(**kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;str&nbsp;version&nbsp;of&nbsp;the&nbsp;local&nbsp;Python&nbsp;variables.<br>
 Defaults&nbsp;to&nbsp;`dumps_json`,&nbsp;and&nbsp;so&nbsp;the&nbsp;str&nbsp;is&nbsp;in&nbsp;JSON&nbsp;format.<br>
 Changing&nbsp;`DEFAULT_DUMPS`&nbsp;changes&nbsp;this&nbsp;action.</tt></dd></dl>
- <dl><dt><a name="-dumps_json"><strong>dumps_json</strong></a>(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;JSON-formatted&nbsp;str&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;variables.<br>
+ <dl><dt><a name="-dumps_json"><strong>dumps_json</strong></a>(_file='', **kwargs)</dt><dd><tt>Returns&nbsp;a&nbsp;JSON-formatted&nbsp;str&nbsp;of&nbsp;{name:&nbsp;value}&nbsp;for&nbsp;all&nbsp;local&nbsp;Python&nbsp;variables.<br>
 **kwargs&nbsp;are&nbsp;passed&nbsp;to&nbsp;`json.dumps`<br>
 @_file&nbsp;is&nbsp;optional&nbsp;and&nbsp;ignored&nbsp;if&nbsp;given.</tt></dd></dl>
- <dl><dt><a name="-mat_to_py"><strong>mat_to_py</strong></a>(_line, _mat_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;python&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-mat_to_bash"><strong>mat_to_bash</strong></a>(_line, _mat_object, _environ=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specificed&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;bash&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;Matlab&nbsp;into&nbsp;Optional[_environ].<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
+@_environ&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;environ&nbsp;dict&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
+&nbsp;<br>
+Returns&nbsp;an&nbsp;environ&nbsp;dict&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
+ <dl><dt><a name="-mat_to_py"><strong>mat_to_py</strong></a>(_line, _mat_object, _load=True)</dt><dd><tt>If&nbsp;_load,&nbsp;move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;python&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_mat_object&nbsp;back&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment.<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
-Updates&nbsp;the&nbsp;local&nbsp;rython&nbsp;space&nbsp;to&nbsp;include&nbsp;these&nbsp;variables;&nbsp;you&nbsp;can&nbsp;recover&nbsp;them&nbsp;using<br>
+Updates&nbsp;the&nbsp;local&nbsp;multilang&nbsp;space&nbsp;to&nbsp;include&nbsp;these&nbsp;variables;&nbsp;you&nbsp;can&nbsp;recover&nbsp;them&nbsp;using<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#-dump">dump</a>()`&nbsp;or&nbsp;one&nbsp;of&nbsp;its&nbsp;alternatives.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-mat_to_r"><strong>mat_to_r</strong></a>(_line, _mat_object=None, _r_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-mat_to_r"><strong>mat_to_r</strong></a>(_line, _mat_object, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc9e8&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;Matlab&nbsp;into&nbsp;Optional[_r_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
-@_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;None&nbsp;is&nbsp;given.<br>
+@_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;an&nbsp;RObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
  <dl><dt><a name="-mod"><strong>mod</strong></a>(a, b)</dt><dd><tt>Replaces&nbsp;Python's&nbsp;modulo&nbsp;operator&nbsp;due&nbsp;to&nbsp;its&nbsp;use&nbsp;in&nbsp;comments</tt></dd></dl>
- <dl><dt><a name="-py_to_mat"><strong>py_to_mat</strong></a>(_line, _mat_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-py_to_bash"><strong>py_to_bash</strong></a>(_line, _environ=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specificed&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;bash&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;python&nbsp;into&nbsp;Optional[_environ].<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
+@_environ&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;environ&nbsp;dict&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
+&nbsp;<br>
+Returns&nbsp;an&nbsp;environ&nbsp;dict&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
+ <dl><dt><a name="-py_to_mat"><strong>py_to_mat</strong></a>(_line, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353cc5c0&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;python&nbsp;into&nbsp;Optional[_mat_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
-@_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;None&nbsp;is&nbsp;given.<br>
+@_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;MatlabObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-py_to_r"><strong>py_to_r</strong></a>(_line, _r_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-py_to_r"><strong>py_to_r</strong></a>(_line, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc630&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;python&nbsp;into&nbsp;Optional[_r_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
-@_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;None&nbsp;is&nbsp;given.<br>
+@_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;an&nbsp;RObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-r_to_mat"><strong>r_to_mat</strong></a>(_line, _r_object=None, _mat_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-r_to_bash"><strong>r_to_bash</strong></a>(_line, _r_object, _environ=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specificed&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;bash&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;R&nbsp;into&nbsp;Optional[_environ].<br>
+Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
+Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
+@_environ&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;environ&nbsp;dict&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
+&nbsp;<br>
+Returns&nbsp;an&nbsp;environ&nbsp;dict&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
+ <dl><dt><a name="-r_to_mat"><strong>r_to_mat</strong></a>(_line, _r_object, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353cc748&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;R&nbsp;into&nbsp;Optional[_mat_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
-@_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;None&nbsp;is&nbsp;given.<br>
+@_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;MatlabObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-r_to_py"><strong>r_to_py</strong></a>(_line, _r_object=None)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;python&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-r_to_py"><strong>r_to_py</strong></a>(_line, _r_object, _load=True)</dt><dd><tt>If&nbsp;_load,&nbsp;move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;python&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_r_object&nbsp;back&nbsp;to&nbsp;the&nbsp;Python&nbsp;environment.<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str].<br>
-Updates&nbsp;the&nbsp;local&nbsp;rython&nbsp;space&nbsp;to&nbsp;include&nbsp;these&nbsp;variables;&nbsp;you&nbsp;can&nbsp;recover&nbsp;them&nbsp;using<br>
+Updates&nbsp;the&nbsp;local&nbsp;multilang&nbsp;space&nbsp;to&nbsp;include&nbsp;these&nbsp;variables;&nbsp;you&nbsp;can&nbsp;recover&nbsp;them&nbsp;using<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<a href="#-dump">dump</a>()`&nbsp;or&nbsp;one&nbsp;of&nbsp;its&nbsp;alternatives.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt></dd></dl>
@@ -372,5 +452,6 @@ Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><strong>ascii_lowercase</strong> = 'abcdefghijklmnopqrstuvwxyz'</td></tr></table>
+<td width="100%"><strong>SUPPORTED</strong> = ['python', 'matlab', 'r', 'bash']<br>
+<strong>ascii_lowercase</strong> = 'abcdefghijklmnopqrstuvwxyz'</td></tr></table>
 </body></html>

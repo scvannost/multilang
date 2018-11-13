@@ -1,4 +1,4 @@
-#! rython R
+#! multilang R
 a <- c(1,2,3)
 b <- matrix(1:9,
 	nrow=3, ncol=3)
@@ -23,7 +23,7 @@ i = eye(3);
 b += 3 % [5, 7, 9]
 i = list(i)
 
-@rython
+@multilang
 def test():
 	print('ok')
 

@@ -1,12 +1,12 @@
 import numpy as np
-from rython import as_rython, Master
+from multilang import as_multilang, Master
 import unittest
 
 
-class Test_Rython_Func(unittest.TestCase):
+class Test_Multilang_Func(unittest.TestCase):
 	def test_start(self):
 		with self.subTest('start in R'):
-			ry = as_rython('''#! rython R
+			ry = as_multilang('''#! multilang R
 				a <- 3
 			''')
 			self.assertIn('a', ry.who_r)
@@ -16,7 +16,7 @@ class Test_Rython_Func(unittest.TestCase):
 			del d
 
 		with self.subTest('start in Mat'):
-			ry = as_rython('''#! rython mat
+			ry = as_multilang('''#! multilang mat
 				a = 3''')
 			self.assertIn('a', ry.who_mat)
 			d = ry.dump_mat()
@@ -25,8 +25,8 @@ class Test_Rython_Func(unittest.TestCase):
 			del d
 
 		with self.subTest('start py'):
-			ry = as_rython(
-'''#! rython py
+			ry = as_multilang(
+'''#! multilang py
 a = 3''')
 			self.assertIn('a', ry.who_py)
 			d = ry.dump_py()
@@ -35,8 +35,8 @@ a = 3''')
 			del d
 
 		with self.subTest('start implied py'):
-			ry = as_rython(
-'''#! rython
+			ry = as_multilang(
+'''#! multilang
 a = 3''')
 			self.assertIn('a', ry.who_py)
 			d = ry.dump_py()
@@ -46,8 +46,8 @@ a = 3''')
 
 	def test_r(self):
 		with self.subTest('r_to_py'):
-			ry = as_rython(
-'''#! rython R
+			ry = as_multilang(
+'''#! multilang R
 a <- 3
 #! python -> a
 a *= 2''')
@@ -62,8 +62,8 @@ a *= 2''')
 			del p,r
 
 		with self.subTest('r_to_mat'):
-			ry = as_rython(
-'''#! rython R
+			ry = as_multilang(
+'''#! multilang R
 a <-3
 #! matlab -> a
 a = a+1''')
@@ -78,8 +78,8 @@ a = a+1''')
 			del m,r
 
 		with self.subTest('py_to_r'):
-			ry = as_rython(
-'''#! rython
+			ry = as_multilang(
+'''#! multilang
 a = 3
 #! r -> a
 a = 7''')
@@ -95,7 +95,7 @@ a = 7''')
 
 
 
-class Test_Rython_Master_Base(unittest.TestCase):
+class Test_Multilang_Master_Base(unittest.TestCase):
 	def test_r_only(self):
 		ry = Master(mat=False)
 		self.assertTrue(ry.isalive_r)
@@ -161,7 +161,7 @@ class Test_Rython_Master_Base(unittest.TestCase):
 			self.assertDictEqual(ry.dump_all('r'), {'b':4, 'd':7})
 			self.assertRaisesRegex(Exception, 'Repeated variable name [a-zA-Z]+', ry.dump_all, None)
 
-class Test_Rython_Master_Py(unittest.TestCase):
+class Test_Multilang_Master_Py(unittest.TestCase):
 	def setUp(self):
 		self.ry = Master(r=False, mat=False)
 
@@ -179,7 +179,7 @@ class Test_Rython_Master_Py(unittest.TestCase):
 		with self.subTest('drop'):
 			self.ry.drop('a')
 			self.assertDictEqual(self.ry.dump_py(), {'b':4})
-class Test_Rython_Master_R(unittest.TestCase):
+class Test_Multilang_Master_R(unittest.TestCase):
 	def setUp(self):
 		self.ry = Master(mat=False)
 
@@ -264,7 +264,7 @@ class Test_Rython_Master_R(unittest.TestCase):
 		self.assertListEqual(d['a'].tolist(), [[1,2,3],[4,5,6]])
 
 
-class Test_Rython_Master_Mat(unittest.TestCase):
+class Test_Multilang_Master_Mat(unittest.TestCase):
 	def setUp(self):
 		self.ry = Master(r=False)
 
@@ -345,7 +345,7 @@ class Test_Rython_Master_Mat(unittest.TestCase):
 		self.assertListEqual(d['a'].tolist(), [[1,2,3],[4,5,6]])
 
 
-class Test_Rython_Master_RMat(unittest.TestCase):
+class Test_Multilang_Master_RMat(unittest.TestCase):
 	def setUp(self):
 		self.ry = Master()
 
