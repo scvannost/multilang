@@ -1,13 +1,20 @@
 from distutils.core import setup
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
   name = 'mutlilang',
   packages = ['multilang'],
-  version = '0.1.1a1',
+  version = '0.1.1a2',
   license='MIT',
   description = 'Allows for running code in mutliple languages',
+  long_description=long_description,
+  long_description_content_type="text/markdown",
   author = 'SC van Nostrand',
   author_email = 'scvannost@gmail.com',
-  download_url = 'https://github.com/scvannost/rython/archive/0.1.0.tar.gz',
+  download_url = 'https://github.com/scvannost/multilang/archive/0.1.1a2.tar.gz',
+  url = 'https://github.com/scvannost/multilang',
   keywords = ['R', 'Matlab', 'environment'],
   install_requires=[
       'pexpect',
