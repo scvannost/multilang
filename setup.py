@@ -1,7 +1,7 @@
 from distutils.core import setup
 setup(
   name = 'mutlilang',
-  packages = ['mutlilang'],
+  packages = ['multilang'],
   version = '0.1.1a1',
   license='MIT',
   description = 'Allows for running code in mutliple languages',
