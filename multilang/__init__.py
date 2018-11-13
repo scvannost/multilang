@@ -1610,7 +1610,7 @@ Also returns as a dict
 		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
 		while len(code[-1]) < 1:
 			code = code[:-1]
-		subprocess.run('\n'.join(code), shell=True, env={k:str(v) for k,v in _environ.items()}).check_returncode()
+		subprocess.run('\n'.join(code), shell=True, env={k:str(v) for k,v in self._environ.items()}).check_returncode()
 		self._environ = os.environ.copy()
 
 	def py_to_bash(self, names):
