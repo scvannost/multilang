@@ -41,6 +41,11 @@ Either way, you get full access to the Python, R, Matlab, and shell environments
 any library or built-in function; and can build on top of these frameworks to do
 crazy things and bodge things quickly.
 
+### Syntax Highlighting
+By putting the `.tmPreferences` and `.sublime-syntax` in the `.config/sublime-text-3/Packages/User`
+folder, Sublime will automatically highlight the syntax correctly for each language in a `.mul` file
+and understand how to properly comment in Multilang.
+
 ### Example code
 Examples will be placed in the `examples` folder 
 
