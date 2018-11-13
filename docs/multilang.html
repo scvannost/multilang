@@ -302,7 +302,7 @@ The&nbsp;definition&nbsp;of&nbsp;this&nbsp;function&nbsp;follows&nbsp;as&nbsp;an
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[12]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var+'_columns':&nbsp;obj.columns.values.tolist()}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[13]&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[14]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;{var:&nbsp;np.array(obj)}</tt></dd></dl>
- <dl><dt><a name="-as_multilang"><strong>as_multilang</strong></a>(_lines, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc908&gt;, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353ccb70&gt;, _environ=None, **kwargs)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;multilang&nbsp;coding.<br>
+ <dl><dt><a name="-as_multilang"><strong>as_multilang</strong></a>(_lines, _r_object=&lt;multilang.objects.RObject object at 0x7f91befad8d0&gt;, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f91befadb38&gt;, _environ=None, **kwargs)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;multilang&nbsp;coding.<br>
 Takes&nbsp;an&nbsp;IO&nbsp;buffer&nbsp;with&nbsp;`readlines&nbsp;-&gt;&nbsp;Iterable[Union[str,&nbsp;bytes]]`&nbsp;(preferred)&nbsp;or<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`read&nbsp;-&gt;&nbsp;Union[str,&nbsp;bytes]`&nbsp;method,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;Union[str,&nbsp;bytes]&nbsp;with&nbsp;line&nbsp;breaks,&nbsp;or<br>
@@ -344,7 +344,7 @@ See&nbsp;`as_array`&nbsp;for&nbsp;an&nbsp;explanation&nbsp;of&nbsp;how&nbsp;thes
 Any&nbsp;built-in&nbsp;Python/Multilang&nbsp;function&nbsp;can&nbsp;also&nbsp;be&nbsp;used&nbsp;in&nbsp;this&nbsp;way.</tt></dd></dl>
  <dl><dt><a name="-as_multilang_windows"><strong>as_multilang_windows</strong></a>(_lines)</dt><dd><tt>A&nbsp;simple&nbsp;interface&nbsp;for&nbsp;rython&nbsp;coding&nbsp;on&nbsp;Windows.<br>
 Not&nbsp;yet&nbsp;implemented,&nbsp;but&nbsp;will&nbsp;recapitulate&nbsp;`as_multilang`.</tt></dd></dl>
- <dl><dt><a name="-bash_to_mat"><strong>bash_to_mat</strong></a>(_line, _environ, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f883561d4a8&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-bash_to_mat"><strong>bash_to_mat</strong></a>(_line, _environ, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f91bf1fe470&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_environ&nbsp;into&nbsp;Optional[_mat_object].<br>
 Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
@@ -359,7 +359,7 @@ If&nbsp;_load,&nbsp;updates&nbsp;the&nbsp;local&nbsp;multilang&nbsp;space&nbsp;t
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<a href="#-dump">dump</a>()`&nbsp;or&nbsp;one&nbsp;of&nbsp;its&nbsp;alternatives.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-bash_to_r"><strong>bash_to_r</strong></a>(_line, _environ, _r_object=&lt;multilang.objects.RObject object at 0x7f8853bc3f60&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-bash_to_r"><strong>bash_to_r</strong></a>(_line, _environ, _r_object=&lt;multilang.objects.RObject object at 0x7f91dd7a4f60&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;_environ&nbsp;into&nbsp;Optional[_r_object].<br>
 Only&nbsp;variables&nbsp;that&nbsp;are&nbsp;str,&nbsp;int,&nbsp;float&nbsp;are&nbsp;allowed&nbsp;to&nbsp;be&nbsp;passed.<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
@@ -399,7 +399,7 @@ Updates&nbsp;the&nbsp;local&nbsp;multilang&nbsp;space&nbsp;to&nbsp;include&nbsp;
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#-dump">dump</a>()`&nbsp;or&nbsp;one&nbsp;of&nbsp;its&nbsp;alternatives.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;the&nbsp;loaded&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-mat_to_r"><strong>mat_to_r</strong></a>(_line, _mat_object, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc9e8&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-mat_to_r"><strong>mat_to_r</strong></a>(_line, _mat_object, _r_object=&lt;multilang.objects.RObject object at 0x7f91befad9b0&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;Matlab&nbsp;into&nbsp;Optional[_r_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
 @_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
@@ -413,13 +413,13 @@ Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str
 @_environ&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;environ&nbsp;dict&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;an&nbsp;environ&nbsp;dict&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-py_to_mat"><strong>py_to_mat</strong></a>(_line, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353cc5c0&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-py_to_mat"><strong>py_to_mat</strong></a>(_line, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f91befad588&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;python&nbsp;into&nbsp;Optional[_mat_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
 @_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;MatlabObject&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-py_to_r"><strong>py_to_r</strong></a>(_line, _r_object=&lt;multilang.objects.RObject object at 0x7f88353cc630&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-py_to_r"><strong>py_to_r</strong></a>(_line, _r_object=&lt;multilang.objects.RObject object at 0x7f91befad5f8&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;R&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;python&nbsp;into&nbsp;Optional[_r_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
 @_r_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;RObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
@@ -432,7 +432,7 @@ Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str
 @_environ&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;environ&nbsp;dict&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
 &nbsp;<br>
 Returns&nbsp;an&nbsp;environ&nbsp;dict&nbsp;with&nbsp;the&nbsp;variables&nbsp;loaded.</tt></dd></dl>
- <dl><dt><a name="-r_to_mat"><strong>r_to_mat</strong></a>(_line, _r_object, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f88353cc748&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
+ <dl><dt><a name="-r_to_mat"><strong>r_to_mat</strong></a>(_line, _r_object, _mat_object=&lt;multilang.objects.MatlabObject object at 0x7f91befad710&gt;)</dt><dd><tt>Move&nbsp;the&nbsp;variable&nbsp;names&nbsp;specified&nbsp;in&nbsp;_line:&nbsp;#!&nbsp;matlab&nbsp;-&gt;&nbsp;&lt;vars&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;R&nbsp;into&nbsp;Optional[_mat_object].<br>
 Also&nbsp;accepts&nbsp;a&nbsp;comma-separated&nbsp;str&nbsp;or&nbsp;Iterable[str]<br>
 @_mat_object&nbsp;is&nbsp;optional;&nbsp;a&nbsp;new&nbsp;MatlabObject&nbsp;is&nbsp;created&nbsp;if&nbsp;not&nbsp;given.<br>
