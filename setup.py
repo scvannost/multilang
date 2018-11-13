@@ -1,16 +1,11 @@
 from distutils.core import setup
 
-with open("multilang/README.md", "r") as fh:
-    long_description = fh.read()
-
 setup(
   name = 'multilang',
   packages = ['multilang'],
   version = '0.1.1a2',
   license='MIT',
   description = 'Allows for running code in mutliple languages',
-  long_description=long_description,
-  long_description_content_type="text/markdown",
   author = 'SC van Nostrand',
   author_email = 'scvannost@gmail.com',
   download_url = 'https://github.com/scvannost/multilang/archive/0.1.1a2.tar.gz',
