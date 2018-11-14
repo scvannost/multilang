@@ -10,12 +10,16 @@ from within Python, and that being able to write a file that could execute in
 both languages was really appealing.
 
 ## Install
-`pip install multilang`  
-Import as `import multilang`
+`pip install multilang`
+Import as `import multilang`  
+
+### Requirements
+1. Termainal command `$ R` that launches the R CLI
+2. Terminal command `$ matlab -nojvm -nodisplay -nosplash` that launches the Matlab CLI
 
 ### Development
-Current build is 0.1.0  
-Developed solely by me  
+Current build is 0.1.1 
+Developed solely by me in pursuit of my graduate studies at MIT  
 If you find any bugs, please place an Issue on [github](https://github.com/scvannost/multilang).
 
 ## Features
@@ -23,13 +27,15 @@ The 2 main use cases are:
 1. `python -m multilang path/to/file.mul`
 2.
 ~~~python
-#! multilang
 ml = multilang.Master()
 ml.r('...')
 # or
-multilang.as_multilang('/path/to/file.mul')
+multilang.as_multilang('path/to/file.mul')
 # or
-multilang.as_multilang('''code here...''')
+multilang.as_multilang(open('path/to/file.mul', 'r')) # or 'rb'
+# or
+multilang.as_multilang('''#! multilang
+	code here...''')
 ~~~
 
 The first shows how the module can be used to run Multilang .mul scripts directly. It
@@ -50,6 +56,11 @@ and understand how to properly comment in Multilang.
 Examples will be placed in the `examples` folder 
 
 ### Changelog
+v0.1.2:
+  - expanded documentation
+  - better handling of errors from pexpect
+  - Windows handling in \_\_init\_\_ instead of \_\_main\_\_
+
 v0.1.1:
   - name change
   - Suggested extension changed from `.ry` to `.mul` 

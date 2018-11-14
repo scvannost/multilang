@@ -9,7 +9,19 @@
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>objects</strong></big></big></font></td
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/scv/packages/multilang/multilang/objects.py">/home/scv/packages/multilang/multilang/objects.py</a></font></td></tr></table>
-    <p></p>
+    <p><tt>The&nbsp;base&nbsp;environment&nbsp;objects<br>
+&nbsp;<br>
+This&nbsp;is&nbsp;the&nbsp;core&nbsp;of&nbsp;multilang,&nbsp;and&nbsp;provides&nbsp;interfaces&nbsp;for&nbsp;interacting<br>
+with&nbsp;the&nbsp;R&nbsp;and&nbsp;Matlab&nbsp;environments&nbsp;using&nbsp;the&nbsp;`pexpect`&nbsp;package.<br>
+&nbsp;<br>
+As&nbsp;pexpect&nbsp;does&nbsp;not&nbsp;support&nbsp;Windows,&nbsp;neither&nbsp;does&nbsp;this&nbsp;subpackge.<br>
+&nbsp;<br>
+Classes<br>
+-------<br>
+<a href="#RObject">RObject</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;An&nbsp;interactive&nbsp;R&nbsp;environment<br>
+<a href="#MatlabObject">MatlabObject</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;An&nbsp;interactive&nbsp;Matlab&nbsp;environment</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -41,28 +53,138 @@
 <font color="#000000" face="helvetica, arial"><a name="MatlabObject">class <strong>MatlabObject</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;Matlab&nbsp;scripting<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt><a href="#MatlabObject">MatlabObject</a>(connect=True)<br>
+&nbsp;<br>
+A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;Matlab&nbsp;scripting<br>
+&nbsp;<br>
+Properties<br>
+----------<br>
+isalive<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;the&nbsp;Matlab&nbsp;environment&nbsp;is&nbsp;alive<br>
+before<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;text&nbsp;just&nbsp;produced&nbsp;by&nbsp;the&nbsp;CLI<br>
+who<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;list&nbsp;of&nbsp;the&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+&nbsp;<br>
+Functions<br>
+---------<br>
+connect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Connect&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+reconnect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reconnect&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environmnet<br>
+close<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Close&nbsp;the&nbsp;connection&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+send<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment's&nbsp;CLI<br>
+sendline<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment's&nbsp;CLI&nbsp;and&nbsp;wait&nbsp;for&nbsp;it&nbsp;to&nbsp;run<br>
+sendlines<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;multiple&nbsp;lines&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment's&nbsp;CLI<br>
+expect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Wait&nbsp;for&nbsp;the&nbsp;CLI&nbsp;to&nbsp;say&nbsp;a&nbsp;phrase<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="MatlabObject-__init__"><strong>__init__</strong></a>(self, connect=True)</dt><dd><tt>If&nbsp;@connect,&nbsp;calls&nbsp;`connect`&nbsp;for&nbsp;you.</tt></dd></dl>
+<dl><dt><a name="MatlabObject-__init__"><strong>__init__</strong></a>(self, connect=True)</dt><dd><tt>Setup&nbsp;an&nbsp;<a href="#MatlabObject">MatlabObject</a><br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+connect&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;connect&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;True</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-close"><strong>close</strong></a>(self, force=False)</dt><dd><tt>Calls&nbsp;Matlab's&nbsp;`exit`&nbsp;command<br>
-If&nbsp;@force,&nbsp;bypasses&nbsp;`finish.m`</tt></dd></dl>
+<dl><dt><a name="MatlabObject-close"><strong>close</strong></a>(self, force=False)</dt><dd><tt>Close&nbsp;the&nbsp;R&nbsp;environment<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+force&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;bypass&nbsp;finish.m<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-connect"><strong>connect</strong></a>(self)</dt><dd><tt>Make&nbsp;a&nbsp;Matlab&nbsp;command-line&nbsp;environment<br>
+<dl><dt><a name="MatlabObject-connect"><strong>connect</strong></a>(self)</dt><dd><tt>Connect&nbsp;to&nbsp;an&nbsp;Matlab&nbsp;environment<br>
 Does&nbsp;nothing&nbsp;if&nbsp;`isalive`;&nbsp;use&nbsp;`reconnect`</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-expect"><strong>expect</strong></a>(self, phrase)</dt><dd><tt>Wraps&nbsp;`pexpect.spawn.expect`</tt></dd></dl>
+<dl><dt><a name="MatlabObject-expect"><strong>expect</strong></a>(self, phrase)</dt><dd><tt>Wait&nbsp;for&nbsp;a&nbsp;specific&nbsp;phrase<br>
+Wraps&nbsp;`pexpect.spawn.expect`<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+phrase&nbsp;:&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;str:&nbsp;a&nbsp;regex&nbsp;pattern&nbsp;to&nbsp;wait&nbsp;for<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Iterable[str]:&nbsp;a&nbsp;list&nbsp;of&nbsp;possible&nbsp;regex&nbsp;responses<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Also&nbsp;acceptable&nbsp;are&nbsp;the&nbsp;`TimeoutError`&nbsp;and&nbsp;`EOFError`&nbsp;classes<br>
+&nbsp;<br>
+Returns<br>
+-------<br>
+int<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;phrase&nbsp;received&nbsp;if&nbsp;phrase&nbsp;is&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;if&nbsp;phrase&nbsp;is&nbsp;str<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;connected<br>
+TimeoutError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;the&nbsp;CLI&nbsp;does&nbsp;not&nbsp;produce&nbsp;acceptable&nbsp;output&nbsp;in&nbsp;time</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-reconnect"><strong>reconnect</strong></a>(self, force=False)</dt><dd><tt>Calls&nbsp;`close`&nbsp;if&nbsp;already&nbsp;`self.<strong>isalive</strong>,&nbsp;and&nbsp;calls&nbsp;`connect`.<br>
-If&nbsp;@force,&nbsp;doesn't&nbsp;try&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;and&nbsp;just&nbsp;starts&nbsp;a&nbsp;new&nbsp;environment.</tt></dd></dl>
+<dl><dt><a name="MatlabObject-reconnect"><strong>reconnect</strong></a>(self, force=False)</dt><dd><tt>Reconnects&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;environment<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+force&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;skip&nbsp;trying&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;the&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Doesn't&nbsp;allow&nbsp;for&nbsp;saving<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-send"><strong>send</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface<br>
-Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.</tt></dd></dl>
+<dl><dt><a name="MatlabObject-send"><strong>send</strong></a>(self, line)</dt><dd><tt>Send&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface<br>
+Does&nbsp;not&nbsp;append&nbsp;a&nbsp;line&nbsp;ending&nbsp;or&nbsp;';'<br>
+Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+line&nbsp;:&nbsp;str<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;what&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-sendline"><strong>sendline</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;waits&nbsp;for&nbsp;processing</tt></dd></dl>
+<dl><dt><a name="MatlabObject-sendline"><strong>sendline</strong></a>(self, line)</dt><dd><tt>Send&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;wait&nbsp;for&nbsp;processing<br>
+Appends&nbsp;a&nbsp;line&nbsp;ending&nbsp;if&nbsp;needed<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+line&nbsp;:&nbsp;str<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;what&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+TypeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;line&nbsp;is&nbsp;not&nbsp;str<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive<br>
+Exception<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Matlab&nbsp;raises&nbsp;an&nbsp;error</tt></dd></dl>
 
-<dl><dt><a name="MatlabObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Sends&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;sequentially</tt></dd></dl>
+<dl><dt><a name="MatlabObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Send&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;Matlab&nbsp;command-line&nbsp;interface&nbsp;sequentially<br>
+and&nbsp;wait&nbsp;for&nbsp;them&nbsp;to&nbsp;run<br>
+Appends&nbsp;line&nbsp;endings&nbsp;between&nbsp;each&nbsp;line<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+lines&nbsp;:&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;str:&nbsp;multiple&nbsp;lines&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI&nbsp;separated&nbsp;by&nbsp;line&nbsp;endings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Iterable[str]:&nbsp;a&nbsp;list&nbsp;of&nbsp;lines&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+TypeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;lines&nbsp;is&nbsp;not&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;any&nbsp;element&nbsp;of&nbsp;the&nbsp;Iterable&nbsp;is&nbsp;not&nbsp;a&nbsp;str<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive<br>
+Exception<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Matlab&nbsp;raises&nbsp;an&nbsp;error</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -73,14 +195,14 @@ Data descriptors defined here:<br>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>before</strong></dt>
-<dd><tt>Returns&nbsp;the&nbsp;value&nbsp;Matlab&nbsp;returned&nbsp;in&nbsp;the&nbsp;last&nbsp;call<br>
+<dd><tt>The&nbsp;last&nbsp;value&nbsp;Matlab&nbsp;returned<br>
 Will&nbsp;have&nbsp;non-value&nbsp;str&nbsp;characters:&nbsp;e.g.&nbsp;\r,&nbsp;\n</tt></dd>
 </dl>
 <dl><dt><strong>isalive</strong></dt>
-<dd><tt>Returns&nbsp;whether&nbsp;is&nbsp;alive</tt></dd>
+<dd><tt>Whether&nbsp;is&nbsp;alive</tt></dd>
 </dl>
 <dl><dt><strong>who</strong></dt>
-<dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;Matlab&nbsp;environment</tt></dd>
+<dd><tt>List&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;Matlab&nbsp;environment</tt></dd>
 </dl>
 </td></tr></table> <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -89,32 +211,159 @@ Will&nbsp;have&nbsp;non-value&nbsp;str&nbsp;characters:&nbsp;e.g.&nbsp;\r,&nbsp;
 <font color="#000000" face="helvetica, arial"><a name="RObject">class <strong>RObject</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt>A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;R&nbsp;scripting<br>&nbsp;</tt></td></tr>
+<td colspan=2><tt><a href="#RObject">RObject</a>(connect:&nbsp;bool&nbsp;=&nbsp;True,&nbsp;load:&nbsp;bool&nbsp;=&nbsp;False)<br>
+&nbsp;<br>
+A&nbsp;simple&nbsp;class&nbsp;that&nbsp;allows&nbsp;for&nbsp;R&nbsp;scripting<br>
+&nbsp;<br>
+Properties<br>
+----------<br>
+isalive<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;the&nbsp;R&nbsp;environment&nbsp;is&nbsp;alive<br>
+before<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;text&nbsp;just&nbsp;produced&nbsp;by&nbsp;the&nbsp;CLI<br>
+who<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;list&nbsp;of&nbsp;the&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;R&nbsp;environment<br>
+&nbsp;<br>
+Functions<br>
+---------<br>
+connect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Connect&nbsp;to&nbsp;the&nbsp;R&nbsp;environment<br>
+reconnect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Reconnect&nbsp;to&nbsp;the&nbsp;R&nbsp;environmnet<br>
+close<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Close&nbsp;the&nbsp;connection&nbsp;to&nbsp;the&nbsp;R&nbsp;environment<br>
+send<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;R&nbsp;environment's&nbsp;CLI<br>
+sendline<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;R&nbsp;environment's&nbsp;CLI&nbsp;and&nbsp;wait&nbsp;for&nbsp;it&nbsp;to&nbsp;run<br>
+sendlines<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Send&nbsp;multiple&nbsp;lines&nbsp;to&nbsp;the&nbsp;R&nbsp;environment's&nbsp;CLI<br>
+expect<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Wait&nbsp;for&nbsp;the&nbsp;CLI&nbsp;to&nbsp;say&nbsp;a&nbsp;phrase<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="RObject-__init__"><strong>__init__</strong></a>(self, connect=True, load=False)</dt><dd><tt>If&nbsp;@connect,&nbsp;calls&nbsp;`connect`&nbsp;for&nbsp;you&nbsp;with&nbsp;@load.</tt></dd></dl>
-
-<dl><dt><a name="RObject-close"><strong>close</strong></a>(self, save='no', runLast=True)</dt><dd><tt>Calls&nbsp;R&nbsp;`q()`&nbsp;to&nbsp;quit<br>
-All&nbsp;arguments&nbsp;passed&nbsp;to&nbsp;`q`<br>
+<dl><dt><a name="RObject-__init__"><strong>__init__</strong></a>(self, connect: bool = True, load: bool = False)</dt><dd><tt>Setup&nbsp;an&nbsp;<a href="#RObject">RObject</a><br>
 &nbsp;<br>
-@save&nbsp;tells&nbsp;whether&nbsp;or&nbsp;not&nbsp;to&nbsp;save&nbsp;the&nbsp;environment;&nbsp;['no','yes']<br>
-@runLast&nbsp;tells&nbsp;R&nbsp;whether&nbsp;to&nbsp;run&nbsp;the&nbsp;`.Last()`&nbsp;function&nbsp;before&nbsp;exiting.</tt></dd></dl>
+Parameters<br>
+----------<br>
+connect&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;connect&nbsp;to&nbsp;the&nbsp;R&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;True<br>
+load&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;load&nbsp;the&nbsp;existing&nbsp;R&nbsp;workspace<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False</tt></dd></dl>
 
-<dl><dt><a name="RObject-connect"><strong>connect</strong></a>(self, load=False)</dt><dd><tt>Make&nbsp;an&nbsp;R&nbsp;environment<br>
+<dl><dt><a name="RObject-close"><strong>close</strong></a>(self, save: bool = False, runLast: bool = True)</dt><dd><tt>Close&nbsp;the&nbsp;R&nbsp;environment<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+save&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;save&nbsp;the&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False<br>
+runLast&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;run&nbsp;R's&nbsp;`.Last()`&nbsp;function&nbsp;before&nbsp;exiting<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;True</tt></dd></dl>
+
+<dl><dt><a name="RObject-connect"><strong>connect</strong></a>(self, load: bool = False)</dt><dd><tt>Connect&nbsp;to&nbsp;an&nbsp;R&nbsp;environment<br>
 Does&nbsp;nothing&nbsp;if&nbsp;`isalive`;&nbsp;use&nbsp;`reconnect`<br>
-If&nbsp;@load,&nbsp;loads&nbsp;existing&nbsp;environment&nbsp;in&nbsp;the&nbsp;current&nbsp;location.</tt></dd></dl>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+load&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;load&nbsp;the&nbsp;existing&nbsp;R&nbsp;workspace</tt></dd></dl>
 
-<dl><dt><a name="RObject-expect"><strong>expect</strong></a>(self, phrase)</dt><dd><tt>Wraps&nbsp;`pexpect.spawn.expect`</tt></dd></dl>
+<dl><dt><a name="RObject-expect"><strong>expect</strong></a>(self, phrase=['[\r\n]', '\\+'])</dt><dd><tt>Wait&nbsp;for&nbsp;a&nbsp;specific&nbsp;phrase<br>
+Wraps&nbsp;`pexpect.spawn.expect`<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+phrase&nbsp;:&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;str:&nbsp;a&nbsp;regex&nbsp;pattern&nbsp;to&nbsp;wait&nbsp;for<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Iterable[str]:&nbsp;a&nbsp;list&nbsp;of&nbsp;possible&nbsp;regex&nbsp;responses<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Also&nbsp;acceptable&nbsp;are&nbsp;the&nbsp;`TimeoutError`&nbsp;and&nbsp;`EOFError`&nbsp;classes<br>
+&nbsp;<br>
+Returns<br>
+-------<br>
+int<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;index&nbsp;of&nbsp;the&nbsp;phrase&nbsp;received&nbsp;if&nbsp;phrase&nbsp;is&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;if&nbsp;phrase&nbsp;is&nbsp;str<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;connected<br>
+TimeoutError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;the&nbsp;CLI&nbsp;does&nbsp;not&nbsp;produce&nbsp;acceptable&nbsp;output&nbsp;in&nbsp;time</tt></dd></dl>
 
-<dl><dt><a name="RObject-reconnect"><strong>reconnect</strong></a>(self, force=False, load=False)</dt><dd><tt>Calls&nbsp;`close`&nbsp;if&nbsp;already&nbsp;`self.<strong>isalive</strong>,&nbsp;and&nbsp;calls&nbsp;`connect`&nbsp;with&nbsp;@load.<br>
-If&nbsp;@force,&nbsp;doesn't&nbsp;try&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;and&nbsp;just&nbsp;starts&nbsp;a&nbsp;new&nbsp;environment.</tt></dd></dl>
+<dl><dt><a name="RObject-reconnect"><strong>reconnect</strong></a>(self, force: bool = False, load: bool = False, save: bool = False, runLast: bool = True)</dt><dd><tt>Reconnects&nbsp;to&nbsp;the&nbsp;R&nbsp;environment<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+force&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;skip&nbsp;trying&nbsp;to&nbsp;neatly&nbsp;`close`&nbsp;the&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Doesn't&nbsp;allow&nbsp;for&nbsp;saving<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False<br>
+save&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;save&nbsp;the&nbsp;environment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;False<br>
+runLast&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;run&nbsp;R's&nbsp;`.Last()`&nbsp;function&nbsp;before&nbsp;exiting<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:&nbsp;True<br>
+load&nbsp;:&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether&nbsp;to&nbsp;load&nbsp;the&nbsp;existing&nbsp;workspace&nbsp;upon&nbsp;reconnecting</tt></dd></dl>
 
-<dl><dt><a name="RObject-send"><strong>send</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface<br>
-Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.</tt></dd></dl>
+<dl><dt><a name="RObject-send"><strong>send</strong></a>(self, line: str)</dt><dd><tt>Send&nbsp;bare&nbsp;text&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface<br>
+Does&nbsp;not&nbsp;append&nbsp;a&nbsp;line&nbsp;ending<br>
+Use&nbsp;`sendline`&nbsp;if&nbsp;wanting&nbsp;to&nbsp;execute&nbsp;a&nbsp;command&nbsp;immediately.<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+line&nbsp;:&nbsp;str<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;what&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+TypeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;line&nbsp;is&nbsp;not&nbsp;str<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive</tt></dd></dl>
 
-<dl><dt><a name="RObject-sendline"><strong>sendline</strong></a>(self, line)</dt><dd><tt>Sends&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;waits&nbsp;for&nbsp;processing</tt></dd></dl>
+<dl><dt><a name="RObject-sendline"><strong>sendline</strong></a>(self, line: str)</dt><dd><tt>Send&nbsp;a&nbsp;line&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;and&nbsp;wait&nbsp;for&nbsp;processing<br>
+Appends&nbsp;a&nbsp;line&nbsp;ending&nbsp;if&nbsp;needed<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+line&nbsp;:&nbsp;str<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;what&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+TypeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;line&nbsp;is&nbsp;not&nbsp;str<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive<br>
+Exception<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;R&nbsp;raises&nbsp;an&nbsp;error</tt></dd></dl>
 
-<dl><dt><a name="RObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Sends&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;sequentially</tt></dd></dl>
+<dl><dt><a name="RObject-sendlines"><strong>sendlines</strong></a>(self, lines)</dt><dd><tt>Send&nbsp;a&nbsp;set&nbsp;of&nbsp;lines&nbsp;to&nbsp;the&nbsp;R&nbsp;command-line&nbsp;interface&nbsp;sequentially<br>
+and&nbsp;wait&nbsp;for&nbsp;them&nbsp;to&nbsp;run<br>
+Appends&nbsp;line&nbsp;endings&nbsp;between&nbsp;each&nbsp;line<br>
+&nbsp;<br>
+Parameters<br>
+----------<br>
+lines&nbsp;:&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;str:&nbsp;multiple&nbsp;lines&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI&nbsp;separated&nbsp;by&nbsp;line&nbsp;endings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;Iterable[str]:&nbsp;a&nbsp;list&nbsp;of&nbsp;lines&nbsp;to&nbsp;send&nbsp;to&nbsp;the&nbsp;CLI<br>
+&nbsp;<br>
+Raises<br>
+------<br>
+TypeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;lines&nbsp;is&nbsp;not&nbsp;str,&nbsp;Iterable[str]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or&nbsp;any&nbsp;element&nbsp;of&nbsp;the&nbsp;Iterable&nbsp;is&nbsp;not&nbsp;a&nbsp;str<br>
+RuntimeError<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;is&nbsp;not&nbsp;alive<br>
+Exception<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If&nbsp;R&nbsp;raises&nbsp;an&nbsp;error</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -125,14 +374,14 @@ Data descriptors defined here:<br>
 <dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
 </dl>
 <dl><dt><strong>before</strong></dt>
-<dd><tt>Returns&nbsp;the&nbsp;value&nbsp;R&nbsp;returned&nbsp;in&nbsp;the&nbsp;last&nbsp;call<br>
+<dd><tt>The&nbsp;last&nbsp;value&nbsp;R&nbsp;returned<br>
 Will&nbsp;have&nbsp;non-value&nbsp;str&nbsp;characters:&nbsp;e.g.&nbsp;\r,&nbsp;\n</tt></dd>
 </dl>
 <dl><dt><strong>isalive</strong></dt>
-<dd><tt>Returns&nbsp;whether&nbsp;is&nbsp;alive</tt></dd>
+<dd><tt>Whether&nbsp;is&nbsp;alive</tt></dd>
 </dl>
 <dl><dt><strong>who</strong></dt>
-<dd><tt>Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;R&nbsp;environment</tt></dd>
+<dd><tt>The&nbsp;list&nbsp;of&nbsp;variable&nbsp;names&nbsp;in&nbsp;the&nbsp;current&nbsp;R&nbsp;environment</tt></dd>
 </dl>
 </td></tr></table></td></tr></table>
 </body></html>

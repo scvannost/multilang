@@ -1,68 +1,231 @@
-"""
-This module runs Python, R, Matlab, and bash code in the same file.
-Note that the underlying connection relies on `pexpect`, which does not support a Windows environment.
-Therefore this will not work in a Windows environment.
+"""Run Python, R, Matlab, and bash in the same file.
 
-Expected uses are:
-	1. In Python (interactive or script):
-	   >>> import multilang
-	   >>> fname = 'path/to/file.mul'
-	   >>> ml = multilang.as_multilang(fname)
-	   >>> # or you can do
-	   >>> ml = multilang.Master()
+Expected uses
+-------------
+1.	Natively in Python:
+		>>> import multilang
 
-	2. From Terminal:
-	   $ python -m multilang path/to/file.mul
+	This allows for both script and interactive use
+		>>>	# run a script
+		>>>	fname = 'path/to/file.mul'
+		>>>	ml = multilang.as_multilang(fname)
+		>>>	ml = multilang.as_multilang('''#! multilang
+		...	<code>
+		...		''')
 
-Passing variables between most environments is done using temporary .mat files.
+		>>>	# use interactively
+		>>>	ml = multilang.Master()
+		>>>	ml.r('# code here')
+
+2.	Running scripts from Terminal:
+		$ python -m multilang path/to/file.mul
+
+
+Warning
+-------
+	The underlying connection relies on `pexpect`, which does not
+	support a Windows environment.
+	Some future release will be Windows-compatible.
+
+Scripts
+-------
+Scripts contain source code in Python, R, Matlab, and/or bash.
+These files are marked by the first line of code:
+	#! multilang [<lang>]
+Switching between environments is done using:
+	#! <lang> -> [<vars>]
+See the docs for as_multilang to learn more.
+
+Interactive
+-----------
+Using the `mutlilang.Master()` class, you can interact with multiple
+environments without having to write a script.
+The Python environment here is only a dictionary to load/store variables.
+All Python code is expected to be run directly by the user.
+See the docs for Master to learn more.
+
+How It Works
+------------
+Passing variables between most environments uses temporary .mat files.
 Python's file interactions use scipy.io.
 R's file interactions use R.matlab.
 Matlab's file interactions use the `load` and `save` commands.
-Bash's interactions are done using an environment dict, starting with os.environ.
+Bash's interactions are done using a dict, starting with `os.environ`.
 
-Bash commands are run using Python's `subprocess.run` with `shell=True, executable='/bin/bash'`.
-As Matlab is running interactively, it is a script and therefore function definitions are not allowed.
+Bash commands are run using:
+	subprocess.run(<code>, shell=True, executable='/bin/bash')
+Matlab is running as a script, so function definitions are not allowed.
+
+Subpackages
+-----------
+All imported directly into the main module for convenience.
+objects
+	Underlying classes for R and Matlab environments
+
+Attributes
+----------
+DEFAULT_DUMP : func
+	The function called by `multilang.dump`
+	Default: `multlilang.dump_dict`
+
+DEFAULT_DUMPS : func
+	The function called by `multilang.dumps`
+	Default: `multlilang.dumps_json`
+
+_VERSION : str
+	The current version of multilang
+
+_SUPPORTED : list[str]
+	The currently supported languages
+
+_VARIABLES : dict[str, object]
+	The storage of variables in the Python environment
+
+_IMPORTED : dict[name: object]
+	Things imported by multilang which are available without
+	import in Scripts.
+
+Major Functions
+---------------
+as_multilang
+	Either as_multilang_unix or as_multilang_windows as detected
+	by platform.system
+as_multilang_unix
+	Run multilang code on a Unix-based system; eg. Ubuntu, Mac
+as_multilang_windows
+	Not implemented
+	Run multilang code on Windows
+
+Classes
+-------
+Master
+	An interactive object for multilang coding
+RObject
+	An interactive R environment
+MatlabObject
+	An interactive Matlab environment
+
+Builtin Functions for Scripting
+-------------------------------
+as_array
+	For passing Python variables as arrays
+mod
+	Replaces Python's modulo operator %
+
+Minor Functions
+---------------
+py_to_bash
+py_to_r
+py_to_mat
+	Move variables from the Python variable dict to the given environment
+
+r_to_bash
+r_to_py
+r_to_mat
+	Move variables from R to the given environment
+
+mat_to_bash
+mat_to_py
+mat_to_r
+	Move variables from Matlab to the given environment
+
+bash_to_py
+bash_to_mat
+bash_to_r
+	Move variables from the bash env dict to the given environment
 """
 
 
 
-# ------------------------------------ Imports ------------------------------------ #
-import io
+# ------------------------------- Imports ------------------------------- #
+import json
 import numpy as np
 import os
 import pandas as pd
+from platform import system
 from random import choices
 import re
 import scipy.io as sio
-from string import ascii_lowercase
 import subprocess
 from tempfile import NamedTemporaryFile
 
-from .objects import *
+from .objects import RObject, MatlabObject
 
 
-# -------------------------------- Helper Functions -------------------------------- #
-def py_to_bash(_line, _environ = None):
-	"""
-Move the variable names specificed in _line: #! bash -> <vars>
-	from python into Optional[_environ].
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-@_environ is optional; a new environ dict is created if not given.
 
-Returns an environ dict with the variables loaded.
+# ------------------------------ Constants ------------------------------ #
+global _VARIABLES
+_VARIABLES = {}
+
+_IMPORTED = {
+		'json'	: json,
+		'np'	: np,
+		'os'	: os,
+		'pd'	: pd,
+		'system': system,
+		'choices': choices,
+		're'	: re,
+		'sio'	: sio,
+		'subprocess': subprocess,
+		'NamedTemporaryFile': NamedTemporaryFile,
+		'RObject': RObject,
+		'MatlabObject': MatlabObject
+	}
+
+_SUPPORTED = ['python3', 'matlab', 'r', 'bash']
+_VERSION = '0.1.2a1'
+
+# Defaults at bottom
+
+
+
+# --------------------------- Helper Functions --------------------------- #
+def py_to_bash(_line, _environ : dict = None):
+	"""Move variables from Python to bash.
+
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! b[ash] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Python variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a Python variable
+
+		All variables must be str, int, float.
+
+	_environ : optional[dict]
+		The dict to which the variables are added
+		Default: os.environ
+
+	Returns
+	-------
+	dict[str: object]
+		The requested variables and their corresponding values
+		Meant to be used as @env in `subprocess.run`
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the Python environment
+	TypeError
+		If a requested variable is not str, int, float
 	"""
 	if not _environ: _environ = os.environ.copy()
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted _line: ' + _line)
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line: ' + str(_line))
 
 	if _to_load[0] == '':
 		return _environ
@@ -70,36 +233,59 @@ Returns an environ dict with the variables loaded.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _VARIABLES:
-			raise Exception(_i+' not in Python environment')
+			raise NameError(_i+' not in Python environment')
 		elif type(_VARIABLES[_i]) not in [str, int, float]:
-			# print(_i, _VARIABLES[_i], type(_VARIABLES[_i]))
-			raise Exception('Only str, int, float can be passed to bash')
+			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _VARIABLES[_i]
 	_environ.update(_out)
 	return _environ
 
-def bash_to_py(_line, _environ, _load = True):
-	"""
-If _load, move the variable names specified in _line: #! python -> <vars>
-	from _environ to the Python environment.
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str].
-If _load, updates the local multilang space to include these variables; you can recover them using
-	`dump()` or one of its alternatives.
+def bash_to_py(_line, _environ : dict, _load : bool = True):
+	"""Move variables from bash to Python
 
-Returns a dictionary of the loaded variables.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! p[y[thon]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of bash variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a bash variable
+
+		All variables must be str, int, float.
+
+	_environ : dict
+		The dictionary where the variables are stored
+		Generally, comes from `multilang.bash`
+
+	_load : optional[bool]
+		If True, loads in `multilang._VARIABLES`
+
+	Returns
+	-------
+	dict[str, object]
+		The requested variables and their corresponding values
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given @_environ
 	"""
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if _to_load[0] == '':
 		return {}
@@ -107,33 +293,60 @@ Returns a dictionary of the loaded variables.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
-			raise Exception(str(_i) + ' not in bash environment.')
+			raise NameError(str(_i) + ' not in bash environment.')
 		else:
 			_out[_i] = _environ[_i]
 	if _load:
 		_VARIABLES.updat(_out)
 	return _out
 
-def bash_to_r(_line, _environ, _r_object = RObject()):
-	"""
-Move the variable names specified in _line: #! R -> <vars>
-	from _environ into Optional[_r_object].
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-@_r_object is optional; a new RObject is created if not given.
+def bash_to_r(_line, _environ : dict, _r_object : RObject = RObject()):
+	"""Move variables from bash to R
 
-Returns an RObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! r[lang] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of bash variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a bash variable
+
+		All variables must be str, int, float.
+
+	_environ : dict
+		The dictionary where the variables are stored
+		Generally, comes from `multilang.bash`
+
+	_r_object : optional[RObject]
+		The R environment to load the variables into
+		Default: new RObject()
+		
+
+	Returns
+	-------
+	RObject
+		An R environment with the given variables loaded
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given @_environ
 	"""
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 	
 	if not _r_object.isalive:
 		_r_object = RObject()
@@ -143,7 +356,7 @@ Returns an RObject with the variables loaded.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
-			raise Exception(str(_i) + ' not in bash environment.')
+			raise NameError(str(_i) + ' not in bash environment.')
 		else:
 			_out[_i] = _environ[_i]
 	
@@ -154,26 +367,53 @@ Returns an RObject with the variables loaded.
 	)
 	return _r_object
 
-def bash_to_mat(_line, _environ, _mat_object = MatlabObject()):
-	"""
-Move the variable names specified in _line: #! R -> <vars>
-	from _environ into Optional[_mat_object].
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-@_mat_object is optional; a new RObject is created if not given.
+def bash_to_mat(_line, _environ : dict, _mat_object : MatlabObject = MatlabObject()):
+	"""Move variables from bash to Matlab
 
-Returns a MatObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! m[at[lab]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of bash variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a bash variable
+
+		All variables must be str, int, float.
+
+	_environ : dict
+		The dictionary where the variables are stored
+		Generally, comes from `multilang.bash`
+
+	_mat_object : optional[MatlabObject]
+		The Matlab environment to load the variables into
+		Default: new MatlabObject()
+		
+
+	Returns
+	-------
+	MatlabObject
+		A Matlab environment with the given variables loaded
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given @_environ
 	"""
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
 		_mat_object = MatlabObject()
@@ -183,7 +423,7 @@ Returns a MatObject with the variables loaded.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
-			raise Exception(str(_i) + ' not in bash environment.')
+			raise NameError(str(_i) + ' not in bash environment.')
 		else:
 			_out[_i] = _environ[_i]
 	
@@ -194,30 +434,60 @@ Returns a MatObject with the variables loaded.
 
 	return _mat_object
 
-def r_to_bash(_line, _r_object, _environ = None):
-	"""
-Move the variable names specificed in _line: #! bash -> <vars>
-	from R into Optional[_environ].
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-@_environ is optional; a new environ dict is created if not given.
+def r_to_bash(_line, _r_object : MatlabObject, _environ : dict = None):
+	"""Move variables from R to bash.
 
-Returns an environ dict with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! b[ash] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of R variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of an R variable
+
+		All variables must be str, int, float.
+
+	_r_object : RObject
+		The R environment to pull the variables from
+
+	_environ : optional[dict]
+		The dictionary to which the variables are added
+		Default: os.environ
+
+	Returns
+	-------
+	dict[str, object]
+		The requested variables and their corresponding values
+		Meant to be used as @env in `multilang.bash`
+
+	Raises
+	------
+	RuntimeError
+		If _r_object is not alive.
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the R environment
+	TypeError
+		If a requested variable is not str, int, float
 	"""
 	if not _r_object.isalive:
-		raise Exception('R connection was killed before things could be brought back to Python.')
+		raise RuntimeError('R connection was killed before things could be brought back to Python.')
 	if not _environ: _environ = os.environ.copy()
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if _to_load[0] == '':
 		return _environ
@@ -226,38 +496,68 @@ Returns an environ dict with the variables loaded.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _dump:
-			raise Exception(str(_i) + ' not in R environment.')
+			raise NameError(str(_i) + ' not in R environment.')
 		elif type(_dump[_i]) not in [str, int, float]:
-			raise Exception('Only str, int, float can be passed to bash')
+			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _dump[_i]
 	_environ.update(_out)
 	return _environ
 
-def mat_to_bash(_line, _mat_object, _environ = None):
-	"""
-Move the variable names specificed in _line: #! bash -> <vars>
-	from Matlab into Optional[_environ].
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-@_environ is optional; a new environ dict is created if not given.
+def mat_to_bash(_line, _mat_object : MatlabObject, _environ : dict = None):
+	"""Move variables from Matlab to bash.
 
-Returns an environ dict with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! b[ash] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Matlab variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of an Matlab variable
+
+		All variables must be str, int, float.
+
+	_mat_object : MatlabObject
+		The Matlab environment to pull the variables from
+
+	_environ : optional[dict]
+		The dictionary to which the variables are added
+		Default: os.environ
+
+	Returns
+	-------
+	dict[str, object]
+		The requested variables and their corresponding values
+		Meant to be used as @env in `multilang.bash`
+
+	Raises
+	------
+	RuntimeError
+		If _mat_object is not alive.
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the Matlab environment
+	TypeError
+		If a requested variable is not str, int, float
 	"""
 	if not _mat_object.isalive:
-		raise Exception('Matlab connection was killed before things could be brought back to Python.')
+		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
 	if not _environ: _environ = os.environ.copy()
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if _to_load[0] == '':
 		return
@@ -266,9 +566,9 @@ Returns an environ dict with the variables loaded.
 	_out = {}
 	for _i in _to_load:
 		if _i not in _dump:
-			raise Exception(str(i) + ' not in Matlab environment')
+			raise NameError(str(i) + ' not in Matlab environment')
 		elif type(_dump[_i]) not in [str, int, float]:
-			raise Exception('Only str, int, float can be passed to bash')
+			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _dump[_i]
 	_environ.update(_out)
@@ -276,28 +576,54 @@ Returns an environ dict with the variables loaded.
 
 
 
-def py_to_r(_line, _r_object = RObject()):
-	"""
-Move the variable names specified in _line: #! R -> <vars>
-	from python into Optional[_r_object].
-Also accepts a comma-separated str or Iterable[str]
-@_r_object is optional; a new RObject is created if not given.
+def py_to_r(_line, _r_object : RObject = RObject()):
+	"""Move variables from Python to R
 
-Returns an RObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! r[lang] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Python variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a Python variable
+
+		All variables must be str, int, float.
+
+	_r_object : optional[RObject]
+		The R environment to load the variables into
+		Default: new RObject()
+		
+
+	Returns
+	-------
+	RObject
+		An R environment with the given variables loaded
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	RuntimeError
+		If _r_object is not alive
+	NameError
+		If a requested variable is not in the Python environment
 	"""
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 	
 	if not _r_object.isalive:
-		_r_object = RObject()
+		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
 		return _r_object
 
@@ -314,13 +640,13 @@ Returns an RObject with the variables loaded.
 
 		if _item not in _VARIABLES:
 			try: eval(_item.split('(')[0])
-			except: raise Exception(_item.split('(')[0] + ' not in Python environment.')
+			except: raise NameError(_item.split('(')[0] + ' not in Python environment.')
 			else:
 				# _item is func(a[, b])
 				for _i in _item[:-1].split('(')[1].split(','):
 					if _i not in _VARIABLES:
 						try: eval(_i)
-						except: raise Exception(_i + ' not in Python environment.')
+						except: raise NameError(_i + ' not in Python environment.')
 				_temp.append(_item)
 		else: _temp.append(_item)
 
@@ -347,7 +673,7 @@ Returns an RObject with the variables loaded.
 	sio.savemat(_temp_file, _out)
 	_temp_file.seek(0)
 	
-	_random_name = ''.join(choices(ascii_lowercase, k=10))
+	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendlines(
 		[
 			'library("R.matlab")',
@@ -362,28 +688,54 @@ Returns an RObject with the variables loaded.
 
 	return _r_object
 
-def py_to_mat(_line, _mat_object = MatlabObject()):
-	"""
-Move the variable names specified in _line: #! matlab -> <vars>
-	from python into Optional[_mat_object].
-Also accepts a comma-separated str or Iterable[str]
-@_mat_object is optional; a new MatlabObject is created if not given.
+def py_to_mat(_line, _mat_object : MatlabObject = MatlabObject()):
+	"""Move variables from Python to Matlab
 
-Returns a MatlabObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! m[at[lab]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Python variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a Python variable
+
+		All variables must be str, int, float.
+
+	_mat_object : optional[MatlabObject]
+		The Matlab environment to load the variables into
+		Default: new MatlabObject()
+		
+
+	Returns
+	-------
+	MatlabObject
+		A Matlab environment with the given variables loaded
+
+	Raises
+	------
+	ValueError
+		If _line is not the right format
+	RuntimeError
+		If _mat_object is not alive
+	NameError
+		If a requested variable is not in the Python environment
 	"""
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
-		_mat_object = MatlabObject()
+		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
 		return _mat_object
 
@@ -400,13 +752,13 @@ Returns a MatlabObject with the variables loaded.
 
 		if _item not in _VARIABLES:
 			try: eval(_item.split('(')[0])
-			except: raise Exception(_item.split('(')[0] + ' not in Python environment.')
+			except: raise NameError(_item.split('(')[0] + ' not in Python environment.')
 			else:
 				# _item = func(a[, b])
 				for _i in _item[:-1].split('(')[1].split(','):
 					if _i not in _VARIABLES:
 						try: eval(_i)
-						except: raise Exception(_i + ' not in Python environment.')
+						except: raise NameError(_i + ' not in Python environment.')
 				_temp.append(_item)
 		else: _temp.append(_item)
 
@@ -436,29 +788,55 @@ Returns a MatlabObject with the variables loaded.
 
 	return _mat_object
 
-def r_to_py(_line, _r_object, _load = True):
-	"""
-If _load, move the variable names specified in _line: #! python -> <vars>
-	from _r_object back to the Python environment.
-Also accepts a comma-separated str or Iterable[str].
-Updates the local multilang space to include these variables; you can recover them using
-	`dump()` or one of its alternatives.
+def r_to_py(_line, _r_object : RObject, _load : bool = True):
+	"""Move variables from R to Python
 
-Returns a dictionary of the loaded variables.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! p[y[thon]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of R variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a R variable
+
+		All variables must be str, int, float.
+
+	_r_object : RObject
+		The R environment where the variables are stored
+
+	_load : optional[bool]
+		If True, loads in `multilang._VARIABLES`
+
+	Returns
+	-------
+	dict[str, object]
+		The requested variables and their corresponding values
+
+	Raises
+	------
+	RuntimeError:
+		If _r_object is not alive
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given R environment
 	"""
 	if not _r_object.isalive:
-		raise Exception('R connection was killed before things could be brought back to Python.')
+		raise RuntimeError('R connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if _to_load[0] == '':
 		return
@@ -466,9 +844,9 @@ Returns a dictionary of the loaded variables.
 	_who = _r_object.who
 	for i in _to_load:
 		if i not in _who:
-			raise Exception(str(i) + ' not in R environment.')
+			raise NameError(str(i) + ' not in R environment.')
 
-	_random_name = ''.join(choices(ascii_lowercase, k=10))
+	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendline(_random_name + '<- tempfile(); ' + _random_name)
 	_temp_file = str(_r_object.before).split('"')[1]
 
@@ -484,40 +862,69 @@ Returns a dictionary of the loaded variables.
 		_VARIABLES.update(_loaded)
 	return _loaded
 
-def r_to_mat(_line, _r_object, _mat_object = MatlabObject()):
-	"""
-Move the variable names specified in _line: #! matlab -> <vars>
-	from R into Optional[_mat_object].
-Also accepts a comma-separated str or Iterable[str]
-@_mat_object is optional; a new MatlabObject is created if not given.
+def r_to_mat(_line, _r_object : RObject, _mat_object : MatlabObject = MatlabObject()):
+	"""Move variables from R to Matlab
 
-Returns a MatlabObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! m[at[lab]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of R variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a R variable
+
+		All variables must be str, int, float.
+
+	_r_object : Robject
+		The R environment where the variables are stored
+
+	_mat_object : optional[MatlabObject]
+		The Matlab environment to load the variables into
+		Default: new MatlabObject()
+		
+
+	Returns
+	-------
+	MatlabObject
+		A Matlab environment with the given variables loaded
+
+	Raises
+	------
+	RuntimeError:
+		If _r_object or _mat_object is not alive
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given R environment
 	"""
 	if not _r_object.isalive:
-		raise Exception('R connection was killed before things could be brought to Matlab.')
+		raise RuntimeError('R connection was killed before things could be brought to Matlab.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
-		_mat_object = MatlabObject()
+		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
 		return _mat_object
 
 	_who = _r_object.who
 	for i in _to_load:
 		if i not in _who:
-			raise Exception(str(i) + ' not in R environment.')
+			raise NameError(str(i) + ' not in R environment.')
 
-	_random_name = ''.join(choices(ascii_lowercase, k=10))
+	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendline(_random_name + '<- tempfile(); ' + _random_name)
 	_temp_file = str(_r_object.before).split('"')[1]
 
@@ -530,38 +937,64 @@ Returns a MatlabObject with the variables loaded.
 
 	return _mat_object
 
-def mat_to_py(_line, _mat_object, _load = True):
-	"""
-If _load, move the variable names specified in _line: #! python -> <vars>
-	from _mat_object back to the Python environment.
-Also accepts a comma-separated str or Iterable[str]
-Updates the local multilang space to include these variables; you can recover them using
-	dump()` or one of its alternatives.
+def mat_to_py(_line, _mat_object : MatlabObject, _load : bool = True):
+	"""Move variables from Matlab to Python
 
-Returns a dictionary of the loaded variables.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! p[y[thon]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Matlab variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a Matlab variable
+
+		All variables must be str, int, float.
+
+	_mat_object : MatlabObject
+		The Matlab environment where the variables are stored
+
+	_load : optional[bool]
+		If True, loads in `multilang._VARIABLES`
+
+	Returns
+	-------
+	dict[str, object]
+		The requested variables and their corresponding values
+
+	Raises
+	------
+	RuntimeError:
+		If _mat_object is not alive
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given Matlab environment
 	"""
 	if not _mat_object.isalive:
-		raise Exception('Matlab connection was killed before things could be brought back to Python.')
+		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__'):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if _to_load[0] == '':
 		return
 
 	_who = _mat_object.who
 	if any([i not in _who for i in _to_load]):
-		raise Exception(str(i) + ' not in Matlab environment')
+		raise NameError(str(i) + ' not in Matlab environment')
 
-	_random_name = ''.join(choices(ascii_lowercase, k=10))
+	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_mat_object.sendline(_random_name + ' = tempname')
 	_temp_file = _mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 
@@ -576,40 +1009,69 @@ Returns a dictionary of the loaded variables.
 		_VARIABLES.update(_loaded)
 	return _loaded
 
-def mat_to_r(_line, _mat_object, _r_object = RObject()):
-	"""
-Move the variable names specified in _line: #! R -> <vars>
-	from Matlab into Optional[_r_object].
-Also accepts a comma-separated str or Iterable[str]
-@_r_object is optional; a new RObject is created if not given.
+def mat_to_r(_line, _mat_object : MatlabObject, _r_object : RObject = RObject()):
+	"""Move variables from Matlab to R
 
-Returns an RObject with the variables loaded.
+	Parameters
+	----------
+	_line : str, Iterable[str]
+		If str, one of the following:
+			1. '#! m[at[lab]] -> <vars>'
+			2. '<vars>'
+		where <vars> is a comma separated list of Matlab variable names
+
+		If Iterable[str]: [<var1>, <var2>, ...]
+		where <varX> is the name of a Matlab variable
+
+		All variables must be str, int, float.
+
+	_mat_object : Matlabobject
+		The Matlab environment where the variables are stored
+
+	_r_object : optional[RObject]
+		The R environment to load the variables into
+		Default: new RObject()
+		
+
+	Returns
+	-------
+	MatlabObject
+		A Matlab environment with the given variables loaded
+
+	Raises
+	------
+	RuntimeError:
+		If _mat_object or _r_object is not alive
+	ValueError
+		If _line is not the right format
+	NameError
+		If a requested variable is not in the given Matlab environment
 	"""
 	if not _mat_object.isalive:
-		raise Exception('Matlab connection was killed before things could be brought back to Python.')
+		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
 		if not '->' in _line:
-			raise Exception('Misformatted line: "' + _line + '"')
+			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
 		_to_load = list(_line)
 	else:
-		raise Exception('Unrecognized _line')
+		raise ValueError('Unrecognized _line')
 
 	if not _r_object.isalive:
-		_r_object = RObject()
+		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
 		return _r_object
 
 	_who = _mat_object.who
 	for i in _to_load:
 		if i not in _who:
-			raise Exception(str(i) + ' not in Matlab environment')
+			raise NameError(str(i) + ' not in Matlab environment')
 
-	_random_name = ''.join(choices(ascii_lowercase, k=10))
+	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_mat_object.sendline(_random_name + ' = tempname')
 	_temp_file = _mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 
@@ -633,37 +1095,45 @@ Returns an RObject with the variables loaded.
 	return _r_object
 
 
-def dump(_file='', **kwargs):
+def dump(_file = '', **kwargs):
+	"""Return the local Python variables
+	Change `multilang.DEFAULT_DUMP` to change this action
 	"""
-Defaults to `dump_dict`, and so returns a dict of all local Python variables.
-Changing `DEFAULT_DUMP` changes this action.
-	"""
-	return DEFAULT_DUMP(_file, **kwargs)
+	return DEFAULT_DUMP(_file=_file, **kwargs)
 
 def dumps(**kwargs):
+	"""Returns a str version of the local Python variables.
+	Change `multilang.DEFAULT_DUMPS` to change this action
 	"""
-Returns a str version of the local Python variables.
-Defaults to `dumps_json`, and so the str is in JSON format.
-Changing `DEFAULT_DUMPS` changes this action.
-	"""
-	return DEFAULT_DUMPS('', **kwargs)
+	return DEFAULT_DUMPS(_file='', **kwargs)
 
 
-def dump_dict(_file='', **kwargs):
-	"""
-Returns a dict of {name: value} for all local Python variables.
-Use `globals().update(dump())` to bring variables into the global scope,
-	or `locals().update(dump())` for the local scope.
-@_file is optional and ignored if given.
-**kwargs are ignored.
+def dump_dict(**kwargs):
+	"""Return the local Python variables
+
+	Use `globals().update(dump())` to bring variables into the global scope,
+		or `locals().update(dump())` for the local scope.
+
+	Parameters
+	----------
+	**kwargs : Ignored
+
+	Returns
+	-------
+	dict[str: object]
+		One entry for each local Python variable
 	"""
 	return {k:v for k,v in _VARIABLES.items() if not k[0] is '_'}
 
 def dump_mat(_file, **kwargs):
-	"""
-Takes @_file as a str that is the file name or a file_like with a `write`
-	method and outputs all the local Python variables as a .mat file.
-**kwargs are passed to` scipy.io.savemat`.
+	"""Dumps the local Python variables to a .mat file
+
+	Parameters
+	----------
+	_file : str, filelike
+		The file name to dump into
+		If filelike, has a `write` method
+	**kwargs : Passed to `scipy.io.savemat`.
 	"""
 	if hasattr(_file, 'write'):
 		sio.savemat(_file, *[k for k,v in _VARIABLES.items() if not k[0] is '_'], **kwargs)
@@ -671,27 +1141,27 @@ Takes @_file as a str that is the file name or a file_like with a `write`
 		sio.savemat(open(_file, 'w'), *[k for k,v in _VARIABLES.items() if not k[0] is '_'], **kwargs)
 
 def dump_json(_file, **kwargs):
-	"""
-Takes @_file as  a str that is the file name or a file_like with a `write`
-	method and outputs all the localPython  variables as a .json file.
-**kwargs are passed to `json.dump`
-	"""
-	if not '_json' in _VARIABLES:
-		import json as _json
+	"""Dumps the local Python variables to a .json file
 
+	Parameters
+	----------
+	_file : str, filelike
+		The file name to dump into
+		If filelike, has a `write` method
+	**kwargs : Passed to `json.dump`.
+	"""
 	if hasattr(_file,'write'):
-		_json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, _file, **kwargs)
+		json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, _file, **kwargs)
 	else:
-		_json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, open(_file, 'w'), **kwargs)
+		json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, open(_file, 'w'), **kwargs)
 
-def dumps_json(_file='', **kwargs):
+def dumps_json(**kwargs):
+	"""Returns a JSON-formatted str of local Python variables.
+
+	Parameters
+	----------
+	**kwargs : Passed to `json.dump`.
 	"""
-Returns a JSON-formatted str of {name: value} for all local Python variables.
-**kwargs are passed to `json.dumps`
-@_file is optional and ignored if given.
-	"""
-	if not '_json' in _VARIABLES:
-		import json as _json
 	json.dumps({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, **kwargs)
 
 def mod(a,b):
@@ -699,32 +1169,26 @@ def mod(a,b):
 	return a%b
 
 def as_array(var: str, extras: str = 'True'):
-	"""
-Built-in function to pass as an np.array of values
-For some special types, additional information is also passed when @extras is 'True'.
-If it is a pd.DataFrame, df_index and df_columns are also passed as lists.
+	"""Built-in function to pass a variable as an np.array
 
-To define you own wrapping functions, use the @multilang decorator in the Python environment.
-	Currently only available from Python to another environment.
-It should take only str as inputs, with its first as the name of the variable.
-	Local variables can be accessed by _VARIABLES[name], see example.
-It should return a dict of {name: value} of things to pass through `sio.savemat` into the next environment.
+	Parameters
+	----------
+	var : str
+		Name of the Python variable
+	extras : str
+		If 'True', also pass additional information if avaialbe
+		Default: 'True'
 
-The definition of this function follows as an example:
-	[1] #! multilang
-	[2] import pandas as pd
-	[3]
-	[4] @multilang
-	[5] def as_array(var: str, extras: str = 'True'):
-	[6] 	obj = _VARIABLES[var]
-	[7] 	if extras != 'True':
-	[8] 		return {var: np.array(obj)}
-	[9] 	elif type(obj) is pd.core.frame.DataFrame:
-	[10] 		return {var: np.array(obj),
-	[11]				var+'_index': obj.index.values.tolist(),
-	[12]				var+'_columns': obj.columns.values.tolist()}
-	[13]	else:
-	[14]		return {var: np.array(obj)}
+	Returns
+	-------
+	dict : [str: object]
+		The resulting {@var: value} to be loaded into the next environment
+
+	Extras
+	-----
+	If extras == 'True', adds more information about the variable.
+	If var is a pd.DataFrame:
+		<var>_index and <var>_columns are also passed as lists.
 	"""
 
 	obj = _VARIABLES[var]
@@ -738,69 +1202,125 @@ The definition of this function follows as an example:
 	else:
 		return {var: np.array(obj)}
 
-
-
-# ----------------------------------- Constants ----------------------------------- #
-global _VARIABLES
-_VARIABLES = {}
-
-DEFAULT_DUMP = dump_dict
-DEFAULT_DUMPS = dumps_json
-
-SUPPORTED = ['python', 'matlab', 'r', 'bash']
-
-
-# -------------------------------- Main Functions -------------------------------- #
+# ---------------------------- Main Functions ---------------------------- #
 def as_multilang_windows(_lines):
-	"""
-A simple interface for rython coding on Windows.
-Not yet implemented, but will recapitulate `as_multilang`.
+	"""A simple interface for multilang coding on Windows.
+	Not yet implemented, but will recapitulate `as_multilang_Unix`.
 	"""
 	raise NotImplementedError('To be used in a Windows environment')
 
 
-def as_multilang(_lines, _r_object = RObject(), _mat_object = MatlabObject(), _environ = None, **kwargs):
-	"""
-A simple interface for multilang coding.
-Takes an IO buffer with `readlines -> Iterable[Union[str, bytes]]` (preferred) or
-						`read -> Union[str, bytes]` method,
-	  a Union[str, bytes] with line breaks, or
-	  an Iterable[Union[str,bytes]] without linebreaks.
-You can pass @_r_object or @_mat_object to use those instead of creating new ones.
-kwargs are set as variables in the Python environment
-Returns a `Master` object of the environments used to run the script.
+def as_multilang_unix(_lines, _r_object : RObject = RObject(),
+		_mat_object : MatlabObject = MatlabObject(), _environ : dict = None, **kwargs):
+	"""Run a multilang script (implementation for Unix)
 
-"Shebangs" (i.e. #! or %!) are used as the statements to both say this is multilang code
-	and to switch between R, Python, Matlab, and bash.
-The file/str/bytes should read as so:
-	[1] #! multilang [R, Python, Matlab, bash]
-	[2] # code here`
-	[3] #! R/Python/Matlab/bash -> vars
-	[4] # code here
-	[.] # ...
-	[n] #! Python -> vars
+	Parameters
+	----------
+	_lines : filelike, str, bytes, Iterable[str], Iterable[bytes]
+		The script to be run
+		If filelike: must have a `readlines` or `read` method
+		If str, bytes: lines separated by line breaks; eg. \\r\\n, \\r, \\n
+		if Iterable: each entry is a line; no line breaks
 
-All multilang scripts start with `#! multilang` then an optional language.
-If no initial language is given, Python is assumed.
-Scripts should end with a Python switch line to retrieve any variables back
-	into the Python environment.
-The suggested extension for a multilang file is .mul.
+	_r_object : Optional[RObject]
+		An R environment to use
+		Default: new RObject()
 
-To switch languages, `#! <lang> -> <vars>` is used to switched to <lang>.
-	<vars> is an optional comma-separated list of variables to transfer between the environemnts.
-Language names are NOT case-sensitive and depend only on the existence of 'r', 'p', 'm', or 'b'.
-Spaces after shebangs are optional.
-Variables to pass can also be wrapped in functions such as `as_array`.
-	This is currently only available when switching out of Python.
+	_mat_object : Optional[MatlabObject]
+		A Matlab environment to use
+		Default: new MatlabObject()
 
-Note that Python's modulo operator `%` is overwritten as a comment initiator.
-Use `mod(a,b)` to perform this option.
-Python's `%=` is not affected.
+	_environ : dict[str: str,int,float]
+		Variables to be used in bash
+		Default: os.environ
 
-Use @multilang to define a function in the rython space.
-This is useful for defining custom variables-wrapping functions to pass custom objects between environments.
-See `as_array` for an explanation of how these work.
-Any built-in Python/Multilang function can also be used in this way.
+	**kwargs : dict[str:object]
+		Add as variables to the Python environment by calling `load`
+
+	Returns
+	--------
+	Master
+		A Master object with the resulting environments loaded
+
+	Raises
+	------
+	ValueError
+		If any multilang statement is improperly formatted
+	NameError
+		If any variable being passed doesn't exist
+	TypeError
+		If any variable passed to bash is not str,int,float
+
+	Scripts
+	=======
+	"Shebangs" (i.e. #! or %!) are used as the statements to both identify
+	multilang code and to switch between the different environments.
+	_lines should read as so:
+		[1] #! multilang [R, Python, Matlab, bash]
+		[2] # code here`
+		[3] #! R/Python/Matlab/bash -> [<vars>]
+		[4] # code here
+		[.] # ...
+		[n] #! Python -> [<vars>]
+
+	All multilang scripts start with `#! multilang` then an optional language.
+	If no initial language is given, Python is assumed.
+	Scripts should end with a Python switch line to retrieve any variables back
+		into the Python environment.
+	The suggested extension for a multilang file is .mul.
+
+	To switch languages, `#! <lang> -> [<vars>]` is used to switched to <lang>.
+	<vars> is an optional comma-separated list of variables to bring.
+	Language names are NOT case-sensitive and depend only on the existence
+	of 'r', 'p', 'm', or 'b'.
+
+	`print` only works in the Python and bash environments.
+	Outputs in R and Matlab are not currently captured.
+
+	Comments
+	--------
+	Comments can be marked with either '#' or '%'
+
+	In Python, the modulo operator uses a bare %, which is overridden by
+		the multilang comment feature.
+	Use multilang's builtin `mod(a,b)` instead of a%b.
+	Use ''.format() instead of '' % ().
+	
+	Python's `%=`is not affected.
+
+	R's `%...%` operators are not affected either.
+	
+	% and # must also be escaped in strings or the string will be broken
+	with a comment.
+	This is a bug that will be fixed in a future release.
+
+	Builtins
+	--------
+	All of multilang is available as builtins in the Python environment.
+	These can be extended by a Python function with the @multilang wrapper.
+
+	This is particularly useful when passing objects between environments.
+	As multilang's function are only available in Python, these functions are
+	only available when switching out of Python.
+
+	All inputs should be str, with the first being the name of the variable.
+	Local variables can be accessed by _VARIABLES[name], see example.
+	It should return a dict of {name: value} of things to pass through
+		`sio.savemat` into the next environment.
+
+	The definition of `mutlilang.as_array` follows as an example:
+		[1]	#! multilang
+		[2]	@multilang
+		[3]	def as_array(var: str, extras: str = 'True'):
+		[4]		obj = _VARIABLES[var]
+		[5]		if extras != 'True':
+		[6]			return {var: np.array(obj)}
+		[7]		elif type(obj) is pd.core.frame.DataFrame:
+		[8]			return {var: np.array(obj),
+		[9]				var+'_index': obj.index.values.tolist(),
+		[10]			var+'_columns': obj.columns.values.tolist()}
+		[11]	else:
+		[12]		return {var: np.array(obj)}
 	"""
 
 	# load the code
@@ -824,16 +1344,15 @@ Any built-in Python/Multilang function can also be used in this way.
 		_lines = [i.strip('\n') for i in _lines]
 
 	# format validation
-	if _lines[0][:2] not in ['#!','%!'] or 'multilang' not in _lines[0].lower():
-		# if not multilang format, just run it as Python script
-		exec('\n'.join(_lines))
-		_VARIABLES.update({k:v for k,v in locals().items() if not k[0] is '_'})
-		return
+	while _lines[0][:2] not in ['#!','%!'] or 'multilang' not in _lines[0].lower():
+		# find the multilang call
+		_lines = _lines[1:]		
 	for _n, _i in enumerate(_lines[1:]):
 		if len(_i) > 2 and _i[:2] in ['#!', '%!']:
+			# check statements
 			_l = _i[2:].strip().replace(' ','').split('->')
-			if not any([i in _l[0].lower() for i in 'rpmb']) or len(_l) > 2:
-				raise Exception('Improperly formatted call in line ' + str(_n+2))
+			if not any([i in _l[0].lower() for i in 'rpmb']) or len(_l) != 2:
+				raise ValueError('Improperly formatted call in line ' + str(_n+2))
 
 	while not _lines[0]:
 		_lines = _lines[1:]
@@ -850,7 +1369,7 @@ Any built-in Python/Multilang function can also be used in this way.
 		# avoid b from matlab
 		_lang = 'b'
 	else:
-		raise Exception('Unknown language was specified')
+		raise ValueError('Unknown language was specified')
 
 	if kwargs:
 		_VARIABLES.update(kwargs)
@@ -858,20 +1377,15 @@ Any built-in Python/Multilang function can also be used in this way.
 
 	# loop through given code
 	_counter = 1 # skip first line
-	# print(_lines)
 	while _counter < len(_lines):
 		_current_line = _lines[_counter].strip()
-		# print(_counter, _current_line)
 		if not _current_line or (_current_line[0] in '#%' and _current_line[1] != '!'):
-			# print('comment')
 			_counter += 1
 			continue
 
 		# if currently in python
 		elif _lang == 'p':
-			# print('python')
 			if _current_line[:2] in ['#!','%!']:
-				# print('shebang')
 				if 'r' in _current_line.lower().split('->')[0]:
 					_lang = 'r'
 					_r_object = py_to_r(_current_line, _r_object)
@@ -884,7 +1398,6 @@ Any built-in Python/Multilang function can also be used in this way.
 				_counter += 1
 				continue
 			elif '@multilang' in _current_line and re.search(r'^def\s*[a-zA-Z_]+\s*\(.*?\)\s*:$', _lines[_counter+1].strip()):
-				# print('multilang function')
 				_end = _counter + 1
 				_l = _lines[_end].strip(' ')
 				_comment = re.search(r'(?<!\\)[#%]', _l)
@@ -903,16 +1416,14 @@ Any built-in Python/Multilang function can also be used in this way.
 					if _curr_tabs <= _tabs:
 						break
 					elif _l and _l[0] not in '%#':
-						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
+						_comment = re.search(r'(?!<\\)[#(?:%(?!=))]', _l)
 						_to_exec.append(_l[_tabs:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
-
 				# exec('\n'.join(_to_exec))
 				globals().update({_name: locals()[_name]})
 				_counter = _end
 				continue
 
 			else: # otherwise, do the thing
-				# print('executing python...')
 				globals().update(_VARIABLES)
 
 				_end = _counter
@@ -924,16 +1435,13 @@ Any built-in Python/Multilang function can also be used in this way.
 				while _l and _l[:2] not in ['#!','%!'] and '@multilang' not in _l and _end < len(_lines)-1:
 					_end += 1
 					_l = _lines[_end]
-					# print(_end, _lines[_end])
 					if _l and  _l[0] not in '%#':
 						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
 						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
-				# [print(i) for i in _to_exec]
 				exec('\n'.join(_to_exec))
 
 				_VARIABLES.update({k:v for k,v in locals().items() if not k[0] is '_'})
 				_counter = _end+1 if _end == len(_lines)-1 else _end
-				# print(_counter)
 				continue
 
 		# if currently in bash
@@ -960,11 +1468,9 @@ Any built-in Python/Multilang function can also be used in this way.
 				while _l and _l[:2] not in ['#!','%!'] and _end < len(_lines)-1:
 					_end += 1
 					_l = _lines[_end]
-					# print(_end, _lines[_end])
 					if _l and  _l[0] not in '%#':
 						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
 						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
-				# [print(i) for i in _to_exec]
 				subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash').check_returncode()
 
 				_environ = os.environ.copy()
@@ -972,9 +1478,7 @@ Any built-in Python/Multilang function can also be used in this way.
 
 		# if currently in R
 		elif _lang == 'r':
-			# print('r')
 			if _current_line[:2] in ['#!','%!']:
-				# print('shebang')
 				if 'p' in _current_line.lower().split('->')[0]: # if switching to Python
 					_lang = 'p'
 					r_to_py(_current_line, _r_object)
@@ -987,7 +1491,6 @@ Any built-in Python/Multilang function can also be used in this way.
 				_counter += 1
 				continue
 			else: # otherwise do the thing
-				# print('executing r')
 				_end = _counter
 				_l = _lines[_end].strip()
 				_comment = re.search(r'(?<!\\)[#%]', _l)
@@ -999,19 +1502,17 @@ Any built-in Python/Multilang function can also be used in this way.
 					if _l and _l[0] not in '#%':
 						_comment = re.search(
 							# have to ignore all the %...% operators
+							# copied from syntax
 							r'(?<!\\|(?:[(?:in)(?:between)(?:chin)\+(?:\+replace):(?:do)(?:dopar)>(?:<>)(?:T>)$/\*ox]))[#%](?![(?:in)(?:between)(?:chin)\+(?:\+replace):(?:do)(?:dopar)>(?:<>)(?:T>)$/\*ox]*%)',
 							_l)
 						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
-				# [print(i) for i in _to_exec]
 				_r_object.sendlines(_to_exec)
 				_counter = _end+1 if _end == len(_lines)-1 else _end
 				continue
 
 		# if currently in Matlab
 		elif _lang == 'm':
-			# print('matlab')
 			if _current_line[:2] == '#!':
-				# print('shebang')
 				if 'p' in _current_line.lower().split('->')[0]:
 					_lang = 'p'
 					mat_to_py(_current_line, _mat_object)
@@ -1024,7 +1525,6 @@ Any built-in Python/Multilang function can also be used in this way.
 				_counter += 1
 				continue
 			else: # otherwise do the thing
-				# print('executing matlab')
 				_end = _counter
 				_l = _lines[_end].strip()
 				_comment = re.search(r'(?<!\\)[#%]', _l)
@@ -1043,33 +1543,120 @@ Any built-in Python/Multilang function can also be used in this way.
 				continue
 
 		else:
-			raise Exception('Invalid definition of _lang.')
+			raise ValueError('Invalid definition of _lang.')
 
 	ret = Master(r_object=_r_object, mat_object=_mat_object)
 	ret.load_from_dict(_VARIABLES)
-	# print()
 	return ret
 
 
 
 # -------------------------------- Main Classes -------------------------------- #
 class Master:
-	"""
-An object that allows for interfacing with both R and Matlab environments.
-Relies on RObject and MatlabObject classes.
+	"""An interactive Multilang environment
 
-Unlike `as_multilang()`, do not pass misformatted comments to the R/bash (no %) or Matlab (no #) environments.
+	Allows for interfacing with R, Matlab, and bash environments.
+	Relies on RObject and MatlabObject classes, and `subprocess.run`.
 
-m-, mat-, and matlab-based function names are all supported.
-mat is the base implementation, the others just wrap.
+	Unlike in scripts, do not pass misformatted comments.
+		R/bash - # only
+		Matlab - % only
+
+	The Python environment here is only a dictionary to load/store variables.
+	All Python code is expected to be run directly by the user.
+
+	Properties
+	----------
+	who
+		Returns {'X': who_X} for all X
+	who_X
+		Returns a list of the names of all variables in the X environment
+	r_object
+		The underlying R environment
+	isalive_r
+		If the underlying R environment is alive
+	mat_object, m_object, matlab_object
+		The underlying Matlab environment
+	isalive_mat, isalive_m, isalive_matlab
+		If the underlying Matlab environment is alive
+	bash_object
+		The dict of variables underlying the bash environment
+
+	Functions
+	---------
+	connect
+		Connect to the underlying environments
+	reconnect
+		Reconnect to the underlying environments
+	dump_all
+		Return all variables from all environments
+
+	load, load_to_py, to_py
+		Add variable to the Python variable dictionary
+	load_from_dict
+		Add variables to the Python variable dictionary
+	drop
+		Drop variable(s) from the Python variable dictionary
+	dump_py
+		Return the Python variable dictionary
+
+	For X in [r, bash, mat/m/matlab]:
+	connect_X
+		Connect to the underlying R environment
+	X
+		Run X code
+	X_to_mat, X_to_m, X_to_matlab
+		Move variable(s) from X to Matlab
+	X_to_r
+		Move variable(s) from X to R
+	dump_X
+		Get all variables from X
+		Or move all variables from X to the Python variable dictionary
+	X_to_py
+		Move variable(s) from X to the Python variable dictionary
+		Or get variable(s) from X
+	X_to_bash
+		Move variable(s) from R to bash
+	py_to_X
+		Move variable(s) from the Python variable dictionary to X
+	dump_to_X
+		Move all variables from the Python variable dictionary to X
 	"""
-	def __init__(self, r = True, mat = True, load_r = False, r_object = None, mat_object = None, environ = None, m = True, matlab = True):
+	def __init__(self, r : bool = True, mat : bool = True, load_r : bool = False,
+			r_object : RObject = None, mat_object : MatlabObject = None, environ : dict = None,
+			m : bool = True, matlab : bool = True):
+		"""Setup a Master object
+
+		Parameters
+		----------
+		r : bool
+			Whether to connect to an R environment on startup
+		r_object : RObject
+			An existing R environment to use
+			Default: new MatlabObject()
+		load_r : bool
+			Whether to load the existing workspace in R
+			Default: False
+			Default: new RObject()
+			Default: True
+		mat : bool
+			Or @m or @matlab
+			Whether to connect to a Matlab environment on startup
+			Default: True
+		mat_object: MatlabObject
+			An existing Matlab environment to use
+		environ : dict[str: str,int,float]
+			A dictionary to use for the bash environment
+			Default: os.environ
+
+		Returns
+		-------
+		Master
+			Initialized object
 		"""
-@r and @mat specify whether to connect to R and Matlab environments respectively.
-These connections can be made later using `connect`, `connect_r`, or `connect_mat`.
-You can pass in existing RObjects or MatlabObjects through @r_object and @mat_object to wrap them.
-For @load, see `Robject.connect`.
-		"""
+		if system() == 'Windows':
+			raise NotImplementedError('Not implemented for Windows')
+
 		if not r_object: self._r_object = RObject(r, load_r)
 		else: self._r_object = r_object
 
@@ -1085,74 +1672,114 @@ For @load, see `Robject.connect`.
 
 	@property
 	def who(self):
-		"""Returns a dict of {'mat': `who_m`, 'r': `who_r`, 'py':`who_py`}"""
+		"""Returns {'mat': `who_m`, 'r': `who_r`, 'py':`who_py`}"""
 		return {'mat': self.who_m, 'r': self.who_r, 'py': self.who_py, 'bash': self.who_bash}
 
-	def connect(self, r = True, mat = True, load_r = False):
-		"""
-Makes connections to R if @r and Matlab if @mat
-Does nothing if the connection already exists.
-For @load, see `Robject.connect`.
+	def connect(self, r : bool = True, mat : bool = True, load_r : bool = False):
+		"""Connect to the underlying environments.
+		Does nothing if target environment already connected
+
+		Parameters
+		----------
+		r : bool
+			Whether to connect to the R environment
+			Default: True
+		load_r : bool
+			Whether to load the existing workspace in R
+		mat : bool
+			Whether to connect to the Matlab environment
+			Default: True
 		"""
 		if r: self.connect_r(load_r)
 		if mat: self.connect_mat()
 
-	def reconnect(self, r = True, mat = True, force = True, load_r = False):
-		"""
-Calls `r_object.reconnect` if @r and `mat_object.reconnect` if @mat
-For @load, see `Robject.connect`.
+	def reconnect(self, r : bool = True, mat : bool = True, force : bool = True, load_r : bool = False):
+		"""Reconnect to the underlying enviroments
+
+		Parameters
+		----------
+		r : bool
+			Whether to connect to the R environment
+			Default: True
+		load_r : bool
+			Whether to load the existing workspace in R
+		mat : bool
+			Whether to connect to the Matlab environment
+			Default: True
+		force : bool
+			Whether to force reconnection
+			Default: True
 		"""
 		if r: self.r_object.reconnect(force, load_r)
 		if mat: self.mat_object.reconnect(force)
 
 
-	def to_py(self, name, value):
+	def to_py(self, name : str, value):
 		"""See `load`"""
 		self.load(name, value)
-	def load_to_py(self, name, value):
+	def load_to_py(self, name : str, value):
 		"""See `load`"""
 		self.load(name, value)
-	def load(self, name, value):
-		"""Loads the given variable to the Python environment as @name = @value"""
+	def load(self, name : str, value):
+		"""Loads the given Python variable as {name: value}"""
 		self._variables[name] = value
 
 	def drop(self, name):
-		"""Drop the given variable from the Python environment"""
+		"""Drop the given variable(s) from the Python environment"""
+		if  hasattr(name, '__iter__') and not type(name) is str:
+			[self.drop(i) for i in name]
 		del self._variables[name]
 
-	def load_from_dict(self, d):
-		"""
-Add the given values to the Python environment
-	as {name: value}
-Use `load_from_dict(globals())` to load all variables
+	def load_from_dict(self, d : dict):
+		"""Add the given Python variables as {name: value}
+		Use `load_from_dict(globals())` to load all variables
 		"""
 		self._variables.update(d)
 
 	@property
 	def who_py(self):
-		"""Returns a list of the variable names in the Python environment."""
+		"""Returns a list of Python variables."""
 		return list(self._variables.keys())
 
 	def dump_py(self):
-		"""Returns a dict of {name:value} for the variables in the Python environment"""
+		"""Returns the Python variables as a dict of {name:value}"""
 		return self._variables.copy()
 
 
-	def dump_all(self, precedence = 'all'):
+	def dump_all(self, precedence : str = 'all', load : bool = False):
+		"""Get/Load all variables from R and Matlab
+
+		Parameters
+		----------
+		precedence : None, str in ['all', 'r', 'mat']
+			If str: sets which environment gets precedence
+				If 'all': set conflicting variable names as R_name and mat_name
+			If None: error on conflict
+			Default: 'all'
+
+		load : bool
+			Whether to load the result into the Python variable dict
+			Default: False
+
+		Returns
+		-------
+		dict
+			{name:value} for all variables in R and Matlab
+
+		Raises
+		------
+		RuntimeError
+			If either the R or Matlab environment is not alive
+		NameError
+			If @precendence is None and there is a conflicting name
+		ValueError
+			If @precendence not in [None, 'r', 'mat', 'all']
 		"""
-Move all the vars from the R and Matlab environments to the Python environment.
-Also returns values as dict
-If a variable name is repeated, @precedence sets which wins.
-	If None, raises an Exception if there is a repeated name.
-	If 'all', prefixes the variable name with the environment
-@precedence in ['r', 'mat', 'all', None]
-Use `globals().update(dump_all())` to add directly to local session
-		"""
-		if not self.isalive_r: raise Exception('r_object not alive')
-		if not self.isalive_mat: raise Exception('mat_object not alive')
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
+		elif not self.isalive_mat: raise RuntimeError('mat_object not alive')
 
 		names = self.who_r
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
 		temp_file = str(self.r_object.before).split('"')[1]
 		self.r_object.sendlines([
@@ -1163,7 +1790,7 @@ Use `globals().update(dump_all())` to add directly to local session
 		del r['__globals__'], r['__header__'], r['__version__']
 
 		names = self.who_mat
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
 		temp_file = self.mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 		self.mat_object.sendlines([
@@ -1175,7 +1802,7 @@ Use `globals().update(dump_all())` to add directly to local session
 
 		if not precedence:
 			for i in r:
-					raise Exception('Repeated variable name ' + i)
+					raise NameError('Repeated variable name ' + i)
 			# if it makes it here, no repeats
 			mat.update(r)
 			ret = mat
@@ -1204,11 +1831,19 @@ Use `globals().update(dump_all())` to add directly to local session
 		else:
 			raise ValueError('@precedence must be \'r\', \'mat\', \'all\', or None')
 
-		self._variables.update(ret)
+		if load: self._variables.update(ret)
 		return ret
 
-	def connect_r(self, load_r = False):
-		"""Starts a connection to an R environment. See `RObject.connect`"""
+	def connect_r(self, load_r : bool = False):
+		"""Connect to an R environment
+		Does nothing if already connected
+
+		Parameters
+		----------
+		load_r : bool
+			Whether to load the existing R workspace
+			Default: False
+		"""
 		self._r_object.connect(load_r)
 
 	@property
@@ -1217,7 +1852,7 @@ Use `globals().update(dump_all())` to add directly to local session
 		return self._r_object
 	@property
 	def isalive_r(self):
-		"""Returns if the R environment is alive. See `RObject.isalive`"""
+		"""Returns if the R environment is alive"""
 		return self._r_object.isalive
 	@property
 	def who_r(self):
@@ -1227,7 +1862,7 @@ Use `globals().update(dump_all())` to add directly to local session
 
 	def r(self, code):
 		"""Run R code"""
-		if not self.isalive_r: raise Exception('r_object not alive')
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
 		while len(code[-1]) < 1:
 			code = code[:-1]
@@ -1240,20 +1875,36 @@ Use `globals().update(dump_all())` to add directly to local session
 		"""See `r_to_mat`"""
 		self.r_to_mat(names)
 	def r_to_mat(self, names):
-		"""Move the vars in @names from the R environment to the Matlab environment"""
-		if not self.isalive_r: raise Exception('r_object not alive')
-		elif not self.isalive_mat: self.connect_mat()
+		"""Move variables from R to Matlab
+
+		Parameters
+		----------
+		names: str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If either the R or Matlab environments are not alive
+		ValueError
+			If unrecognized @names
+		NameError
+			If a variable not in the R environment
+		"""
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
+		elif not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		who = self.who_r
 		if any([i not in who for i in names]):
-			raise Exception(str(i) + ' not in R environment')
+			raise NameError(str(i) + ' not in R environment')
 
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
 		temp_file = str(self.r_object.before).split('"')[1]
 		self.r_object.sendlines([
@@ -1263,25 +1914,46 @@ Use `globals().update(dump_all())` to add directly to local session
 
 		self.mat_object.sendline('load \'' + temp_file + '\';')
 
-	def r_to_py(self, names, load=True):
+	def r_to_py(self, names, load : bool = True):
+		"""Move variables from R to Python
+		Use `globals().update(r_to_py(@names))` to add directly to local session
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		load : bool
+			Whether to add to Python variable dict
+			Default: True
+
+		Returns
+		-------
+		dict[str: object]
+			The requested variables
+
+		Raises
+		------
+		RuntimeError
+			If the R environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the R environment
 		"""
-Load the vars in @names from the R environment to the Python environment
-Also returns values as dict
-Use `globals().update(r_to_py(@names))` to add directly to local session
-		"""
-		if not self.isalive_r: raise Exception('r_object not alive')
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		who = self.who_r
 		for i in names:
 			if i not in who:
-				raise Exception(str(i) + ' not in R environment')
+				raise NameError(str(i) + ' not in R environment')
 
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
 		temp_file = str(self.r_object.before).split('"')[1]
 		self.r_object.sendlines([
@@ -1294,62 +1966,93 @@ Use `globals().update(r_to_py(@names))` to add directly to local session
 		return ret
 
 	def r_to_bash(self, names):
-		"""Move the vars in @names from the R environment to the bash environment"""
-		if not self.isalive_r: raise Exception('r_object not alive')
+		"""Move variables from R to bash
+		Variables must be str,int,float
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If the R environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the R environment
+		TypeError
+			If a variable is not str,int,float
+		"""
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		dump = self.dump_r(load=False)
 		ret = {}
 		for i in names:
 			if i not in dump:
-				raise Exception(str(i) + ' not in R environment.')
+				raise NameError(str(i) + ' not in R environment.')
 			elif type(dump[i]) not in [str, int, float]:
-				raise Exception('Only str, int, float can be passed to bash')
+				raise TypeError('Only str, int, float can be passed to bash')
 			else:
 				ret[i] = _dump[i]
 		self._environ.update(ret)
 
 	def py_to_r(self, names, **kwargs):
+		"""Move variables from Python to R
+		Make sure you have loaded the variables first with `load` or `load_from_dict`
+		Use @as_array = True to pass pd.DataFrame as np.ndarray
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		**kwargs
+
+		Raises
+		------
+		RuntimeError
+			If the R environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the Python environment
 		"""
-Load the vars in @names to the R environment
-@names can either be a comma-separated str or Iterable[str]
-Make sure you have loaded the variables first with `load` or `load_from_dict`
-Use @as_array = True to pass pd.DataFrame as np.ndarray
-		"""
-		if not self.isalive_r: self.connect_r()
+		if not self.isalive_r: raise RuntimeError('r_object not alive')
 
 		if type(names) is str:
 			names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized name')
+			raise ValueError('Unrecognized name')
 
 		for i in names:
 			if i not in self._variables:
-				raise Exception(i + ' not in Python environment.')
+				raise NameError(i + ' not in Python environment.')
 
-		temp_file = NamedTemporaryFile(suffix='.mat')
 		to_load = {i: self._variables[i] for i in names}
 		if 'as_array' in kwargs and kwargs['as_array']:
-			temp = list(to_load.items())
-			n = 0
-			while n < len(temp):
-				k,v = temp[n]
-				if type(v) is pd.core.frame.DataFrame:
-					to_load[k] = np.array(v)
-					to_load[k + '_index'] = v.index.values.tolist()
-					to_load[k + '_columns'] = v.columns.values.tolist()
-				n += 1
+			temp = list(to_load.keys())
+			if 'extras' in kwargs:
+				extras = kwargs['extras']
+				temp = [as_array(i, extras) for i in temp]
+			else:
+				temp = [as_array(i) for i in temp]
+			to_load = {k:v for d in temp for k,v in d.items()}
 
+		temp_file = NamedTemporaryFile(suffix='.mat')
 		sio.savemat(temp_file, to_load)
 		temp_file.seek(0)
 
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendlines(
 			[
 				'library("R.matlab")',
@@ -1362,15 +2065,24 @@ Use @as_array = True to pass pd.DataFrame as np.ndarray
 			]
 		)
 
-	def dump_r(self, load=True):
-		"""
-Move all the vars from the R environment to the Python environment
-Also returns as a dict
+	def dump_r(self, load : bool = False):
+		"""Returns all the variables from the R environment
+
+		Parameters
+		----------
+		load : bool
+			Whether to also add the variables to the Python variable dict
+			Default: False
+
+		Returns
+		-------
+		dict[str, object]
+			The variables loaded from the R environment
 		"""
 		return self.r_to_py(self.who_r, load)
 
 	def dump_to_r(self):
-		"""Send all the vars from the Python environment to the R environment"""
+		"""Move all variables from Python variable dict to the R environment"""
 		self.py_to_r(self.who_py)
 
 
@@ -1382,7 +2094,9 @@ Also returns as a dict
 		"""See `connect_mat`"""
 		self._mat_object.connect()
 	def connect_mat(self):
-		"""Starts a connection to a Matlab environment. See `MatlabObject.connect`"""
+		"""Connect to an Matlab environment
+		Does nothing if already connected
+		"""
 		self._mat_object.connect()
 
 	@property
@@ -1408,7 +2122,7 @@ Also returns as a dict
 		return self._mat_object.isalive
 	@property
 	def isalive_mat(self):
-		"""Returns if the Matlab environment is alive. See `MatlabObject.isalive`"""
+		"""Returns if the Matlab environment is alive"""
 		return self._mat_object.isalive
 
 	@property
@@ -1443,20 +2157,36 @@ Also returns as a dict
 		"""See mat_to_r"""
 		self.mat_to_r(names)
 	def mat_to_r(self, names):
-		"""Move the vars in @names from mat_object to r_object."""
-		if not self.isalive_mat: raise Exception('mat_object is not alive')
-		elif not self.isalive_r: self.connect_r()
+		"""Move variables from Matlab to R
+
+		Parameters
+		----------
+		names: str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If either the R or Matlab environments are not alive
+		ValueError
+			If unrecognized @names
+		NameError
+			If a variable not in the Matlab environment
+		"""
+		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
+		elif not self.isalive_r: raise RuntimeError('r_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		who = self.who_mat
 		if any([i not in who for i in names]):
-			raise Exception(str(i) + ' not in Matlab environment')
+			raise NameError(str(i) + ' not in Matlab environment')
 
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
 		temp_file = self.mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 		self.mat_object.sendlines([
@@ -1464,7 +2194,7 @@ Also returns as a dict
 				'clear ' + random_name
 			])
 
-		self.random_name = ''.join(choices(ascii_lowercase, k=10))
+		self.random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendlines(
 			[
 				'library("R.matlab")',
@@ -1484,23 +2214,44 @@ Also returns as a dict
 		"""See `mat_to_py`"""
 		return self.mat_to_py(names)
 	def mat_to_py(self, names, load=True):
+		"""Move variables from Matlab to Python
+		Use `globals().update(mat_to_py(@names))` to add directly to local session
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		load : bool
+			Whether to add to Python variable dict
+			Default: True
+
+		Returns
+		-------
+		dict[str: object]
+			The requested variables
+
+		Raises
+		------
+		RuntimeError
+			If the Matlab environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the Matlab environment
 		"""
-	Load the vars in @names from the Matlab environment to the Python environment
-	Also returns values as dict
-	Use `globals().update(mat_to_py(@names))` to add directly to local session
-		"""
-		if not self.isalive_mat: raise Exception('mat_object is not alive')
+		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		who = self.who_mat
 		if any([i not in who for i in names]):
-			raise Exception(str(i) + ' not in Matlab environment')
+			raise NameError(str(i) + ' not in Matlab environment')
 
-		random_name = ''.join(choices(ascii_lowercase, k=10))
+		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
 		temp_file = self.mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 		self.mat_object.sendlines([
@@ -1520,21 +2271,40 @@ Also returns as a dict
 		"""See `mat_to_bash`"""
 		self.mat_to_bash(names)
 	def mat_to_bash(self, names):
-		"""Move the vars in @names from the Matlab environment to the bash environment"""
-		if not self.isalive_mat: raise Exception('mat_object not alive')
+		"""Move variables from Matlab to bash
+		Variables must be str,int,float
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If the Matlab environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the Matlab environment
+		TypeError
+			If a variable is not str,int,float
+		"""
+		if not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		dump = self.dump_mat(load=False)
 		ret = {}
 		for i in names:
 			if i not in dump:
-				raise Exception(str(i) + ' not in R environment.')
+				raise NameError(str(i) + ' not in Matlab environment.')
 			elif type(dump[i]) not in [str, int, float]:
-				raise Exception('Only str, int, float can be passed to bash')
+				raise TypeError('Only str, int, float can be passed to bash')
 			else:
 				ret[i] = _dump[i]
 		self._environ.update(ret)
@@ -1545,22 +2315,48 @@ Also returns as a dict
 	def py_to_matlab(self, names):
 		"""See `py_to_mat`"""
 		self.py_to_mat(names)
-	def py_to_mat(self, names):
+	def py_to_mat(self, names, **kwargs):
+		"""Move variables from Python to Matlab
+		Make sure you have loaded the variables first with `load` or `load_from_dict`
+		Use @as_array = True to pass pd.DataFrame as np.ndarray
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		**kwargs
+
+		Raises
+		------
+		RuntimeError
+			If the Matlab environment is not alive
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the Python environment
 		"""
-Loads the given variables from the Python environment to the Matlab environment
-@names can either be a comma-separated str or Iterable[str]
-Make sure you have loaded the variables first with `load` or `load_from_dict`
-		"""
-		if not self.isalive_mat: self.connect_mat()
+		if not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		for i in names:
 			if i not in self._variables:
-				raise Exception(i + ' not in Python environment.')
+				raise NameError(i + ' not in Python environment.')
+
+
+		to_load = {i: self._variables[i] for i in names}
+		if 'as_array' in kwargs and kwargs['as_array']:
+			temp = list(to_load.keys())
+			if 'extras' in kwargs:
+				extras = kwargs['extras']
+				temp = [as_array(i, extras) for i in temp]
+			else:
+				temp = [as_array(i) for i in temp]
+			to_load = {k:v for d in temp for k,v in d.items()}
 
 		temp_file = NamedTemporaryFile(suffix='.mat')
 		sio.savemat(temp_file, {i: self._variables[i] for i in names})
@@ -1568,16 +2364,25 @@ Make sure you have loaded the variables first with `load` or `load_from_dict`
 
 		self.mat_object.sendline('load \'' + temp_file.name + '\';')
 
-	def dump_m(self, load=True):
+	def dump_m(self, load : bool = False):
 		"""See `dump_mat`"""
 		return self.dump_mat(load)
-	def dump_matlab(self, load=True):
+	def dump_matlab(self, load : bool = False):
 		"""See `dump_mat`"""
 		return self.dump_mat(load)
-	def dump_mat(self, load=True):
-		"""
-Move all the vars from the Matlab environment to the Python environment
-Also returns as a dict
+	def dump_mat(self, load : bool = False):
+		"""Returns all the variables from the Matlab environment
+
+		Parameters
+		----------
+		load : bool
+			Whether to also add the variables to the Python variable dict
+			Default: False
+
+		Returns
+		-------
+		dict[str, object]
+			The variables loaded from the Matlab environment
 		"""
 		return self.mat_to_py(self.who_mat, load)
 
@@ -1588,20 +2393,35 @@ Also returns as a dict
 		"""See `dump_to_mat`"""
 		self.dump_to_mat()
 	def dump_to_mat(self):
-		"""Send all the vars from the Python environment to the Matlab environment"""
+		"""Move all variables from Python variable dict to the Matlab environment"""
 		self.py_to_mat(self.who_py)
 
 
 
 	@property
 	def who_bash(self):
-		"""Returns a list of the variable names in R"""
+		"""Returns a list of the variable names in bash"""
 		return [k for k in self._environ.keys() if k not in self._orig_env]
 
-	def dump_bash(self,load=True):
-		"""
-Move all the vars from the Matlab environment to the Python environment
-Also returns as a dict
+	@property
+	def bash_object(self):
+		"""Underlying dict that represents the bash environment"""
+		return self._environ
+	
+
+	def dump_bash(self, load : bool = False):
+		"""Returns all the variables from the bash environment
+
+		Parameters
+		----------
+		load : bool
+			Whether to also add the variables to the Python variable dict
+			Default: False
+
+		Returns
+		-------
+		dict[str, object]
+			The variables loaded from the Matlab environment
 		"""
 		return self.bash_to_py(self.who_bash, load)
 
@@ -1614,67 +2434,114 @@ Also returns as a dict
 		self._environ = os.environ.copy()
 
 	def py_to_bash(self, names):
+		"""Move variables from Python to bash
+		Make sure you have loaded the variables first with `load` or `load_from_dict`
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		**kwargs
+
+		Raises
+		------
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the Python environment
+		TypeError
+			If a variable is not str,int,float
 		"""
-Move the variable names specificed to the shell.
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str]
-	"""
 		if type(names) is str:
 			names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized name')
+			raise ValueError('Unrecognized name')
 
 		for i in names:
 			if i not in self._variables:
-				raise Exception(i + ' not in Python environment.')
+				raise NameError(i + ' not in Python environment.')
+			elif type(i) not in [str, int, float]:
+				raise TypeError('Only str, int, float can be passed to bash')
 
 		to_load = {i: self._variables[i] for i in names}
 		self._environ.update(to_load)
 
-	def bash_to_py(self, names, load=True):
-		"""
-Load the vars in @names from the shell to the Python environment
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str].
+	def dump_to_bash(self):
+		"""Move all variables from Python variable dict to the Matlab environment"""
+		self.py_to_bash(self.who_py)
 
-Returns values as dict
-Use `globals().update(bash_to_py(@names))` to add directly to local session
+	def bash_to_py(self, names, load : bool = True):
+		"""Move variables from bash to Python
+		Use `globals().update(bash_to_py(@names))` to add directly to local session
+
+		Parameters
+		----------
+		names : str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+		load : bool
+			Whether to add to Python variable dict
+			Default: True
+
+		Returns
+		-------
+		dict[str: object]
+			The requested variables
+
+		Raises
+		------
+		ValueError
+			If unrecognized names
+		NameError
+			If a variable not in the bash environment
 		"""
-		if not self.isalive_r: raise Exception('r_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 
 		ret = {}
 		for i in names:
 			if i not in self._environ:
-				raise Exception(str(i) + ' not in bash environment')
+				raise NameError(str(i) + ' not in bash environment')
 			else:
 				ret[i] = self._environ[i]
 		if load: self._variables.update(ret)
 		return ret
 
 	def bash_to_r(self, names):
+		"""Move variables from bash to R
+
+		Parameters
+		----------
+		names: str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If either the R environment is not alive
+		ValueError
+			If unrecognized @names
+		NameError
+			If a variable not in the bash environment
 		"""
-Load the vars in @names from the shell to the R environment
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str].
-		"""
-		if not self.isalive_r: self.connect_r()
+		if not self.isalive_r: raise RuntimeError('r_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 		
 		out = {}
 		for i in names:
 			if i not in self._environ:
-				raise Exception(str(i) + ' not in bash environment.')
+				raise NameError(str(i) + ' not in bash environment.')
 			else:
 				out[i] = self._environ[i]
 		
@@ -1685,22 +2552,34 @@ Also accepts a comma-separated str or Iterable[str].
 		)
 
 	def bash_to_mat(self, names):
+		"""Move variables from bash to Matlab
+
+		Parameters
+		----------
+		names: str, Iterable[str]
+			If str: comma-separated list of variable names
+			If Iterable[str]: list of variable names
+
+		Raises
+		------
+		RuntimeError
+			If either the Matlab environment is not alive
+		ValueError
+			If unrecognized @names
+		NameError
+			If a variable not in the bash environment
 		"""
-Load the vars in @names from the shell to the Matlab environment
-Only variables that are str, int, float are allowed to be passed.
-Also accepts a comma-separated str or Iterable[str].
-		"""
-		if not self.isalive_mat: self.connect_mat()
+		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
 		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
 			names = list(names)
 		else:
-			raise Exception('Unrecognized @names')
+			raise ValueError('Unrecognized @names')
 		
 		out = {}
 		for i in names:
 			if i not in self._environ:
-				raise Exception(str(i) + ' not in bash environment.')
+				raise NameError(str(i) + ' not in bash environment.')
 			else:
 				out[i] = self._environ[i]
 		
@@ -1708,3 +2587,14 @@ Also accepts a comma-separated str or Iterable[str].
 		sio.savemat(temp_file, out)
 		temp_file.seek(0)
 		self._mat_object.sendlines('load \'' + temp_file.name + '\';')
+
+
+
+
+# ------------------------------- Defaults ------------------------------- #
+DEFAULT_DUMP = dump_dict
+DEFAULT_DUMPS = dumps_json
+if system() == 'Windows':
+	as_multilang = as_multilang_windows
+else:
+	as_multilang = as_multilang_unix
