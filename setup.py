@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
   name = 'multilang',
   packages = ['multilang'],
-  version = '0.1.2a1',
+  version = '0.1.2a2',
   license='MIT',
   description = 'Allows for running code in mutliple languages',
   author = 'SC van Nostrand',

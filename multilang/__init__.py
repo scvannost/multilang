@@ -173,7 +173,7 @@ _IMPORTED = {
 	}
 
 _SUPPORTED = ['python3', 'matlab', 'r', 'bash']
-_VERSION = '0.1.2a1'
+_VERSION = '0.1.2a2'
 
 # Defaults at bottom
 
@@ -1279,7 +1279,8 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 
 	Comments
 	--------
-	Comments can be marked with either '#' or '%'
+	Line comments can be marked with either '#' or '%'
+	Block comments are surrounded by '%{'/'#{' and '%}'/'#}' on their own lines.
 
 	In Python, the modulo operator uses a bare %, which is overridden by
 		the multilang comment feature.
@@ -1287,12 +1288,7 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 	Use ''.format() instead of '' % ().
 	
 	Python's `%=`is not affected.
-
 	R's `%...%` operators are not affected either.
-	
-	% and # must also be escaped in strings or the string will be broken
-	with a comment.
-	This is a bug that will be fixed in a future release.
 
 	Builtins
 	--------
@@ -1370,7 +1366,6 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 		_lang = 'b'
 	else:
 		raise ValueError('Unknown language was specified')
-
 	if kwargs:
 		_VARIABLES.update(kwargs)
 	if not _environ: _environ = os.environ.copy()			
@@ -1379,7 +1374,14 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 	_counter = 1 # skip first line
 	while _counter < len(_lines):
 		_current_line = _lines[_counter].strip()
-		if not _current_line or (_current_line[0] in '#%' and _current_line[1] != '!'):
+		if _current_line in ['%{','#{']:
+			# block comment
+			_i = _counter+1
+			while _i < len(_lines) and _lines[_i].strip() not in ['%}','#}']:
+				_i += 1
+			_counter = _i+1
+			continue
+		elif not _current_line or (_current_line[0] in '#%' and _current_line[1] != '!'):
 			_counter += 1
 			continue
 
@@ -1410,14 +1412,22 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 				_to_exec = [_l[_tabs:]]
 				while _l and _l[:2] not in ['#!', '%!'] and _end < len(_lines)-1:
 					_end += 1
-					_l = _lines[_end].strip(' ')
-					_search = re.search(r'\t+(?:.)', _l)
+					_l = _lines[_end]
+					_search = re.search(r'[\t(?: {4})]+(?:.)', _l)
 					_curr_tabs = _search.end() if _search and _search.end() > 0 else 0
 					if _curr_tabs <= _tabs:
 						break
 					elif _l and _l[0] not in '%#':
-						_comment = re.search(r'(?!<\\)[#(?:%(?!=))]', _l)
-						_to_exec.append(_l[_tabs:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
+						_i = 0
+						_ignore = False
+						while _i < len(_l):
+							if _l[_i] in '\'"':
+								_ignore = not _ignore
+							elif not _ignore and (_l[_i] == '#' or (_l[_i] == '%' and _l[_i+1] != '=')):
+								break
+							_i += 1
+
+						_to_exec.append(_l[:_i])
 				# exec('\n'.join(_to_exec))
 				globals().update({_name: locals()[_name]})
 				_counter = _end
@@ -1435,9 +1445,17 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 				while _l and _l[:2] not in ['#!','%!'] and '@multilang' not in _l and _end < len(_lines)-1:
 					_end += 1
 					_l = _lines[_end]
-					if _l and  _l[0] not in '%#':
-						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
-						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
+					if _l and _l[0] not in '%#':
+						_i = 0
+						_ignore = False
+						while _i < len(_l):
+							if _l[_i] in '\'"':
+								_ignore = not _ignore
+							elif not _ignore and (_l[_i] == '#' or (_l[_i] == '%' and _l[_i+1] != '=')):
+								break
+							_i += 1
+
+						_to_exec.append(_l[:_i])
 				exec('\n'.join(_to_exec))
 
 				_VARIABLES.update({k:v for k,v in locals().items() if not k[0] is '_'})
@@ -1469,8 +1487,16 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 					_end += 1
 					_l = _lines[_end]
 					if _l and  _l[0] not in '%#':
-						_comment = re.search(r'(?<!\\)[#%](?!=)', _l)
-						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
+						_i = 0
+						_ignore = False
+						while _i < len(_l):
+							if _l[_i] in '\'"':
+								_ignore = not _ignore
+							elif not _ignore and (_l[_i] in '#%'):
+								break
+							_i += 1
+
+						_to_exec.append(_l[:_i])
 				subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash').check_returncode()
 
 				_environ = os.environ.copy()
@@ -1500,12 +1526,25 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 					_end += 1
 					_l = _lines[_end].strip()
 					if _l and _l[0] not in '#%':
-						_comment = re.search(
-							# have to ignore all the %...% operators
-							# copied from syntax
-							r'(?<!\\|(?:[(?:in)(?:between)(?:chin)\+(?:\+replace):(?:do)(?:dopar)>(?:<>)(?:T>)$/\*ox]))[#%](?![(?:in)(?:between)(?:chin)\+(?:\+replace):(?:do)(?:dopar)>(?:<>)(?:T>)$/\*ox]*%)',
-							_l)
-						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
+						_i = 0
+						_ignore = False
+						while _i < len(_l):
+							if _l[_i] in '\'"':
+								_ignore = not _ignore
+							elif not _ignore and (
+									_l[_i] == '#' or (
+										_l[_i] == '%' and 
+										# have to ignore all the %...% operators
+										any([j in _l[:_i] for j in
+											['in%','between%', 'chin%', '+%', '+replace%',':%','do%','dopar%',
+											 '>%','<>%','T>%','/%', '*%','o%','x%','*%']
+										])
+									)
+								):
+								break
+							_i += 1
+
+						_to_exec.append(_l[:_u])
 				_r_object.sendlines(_to_exec)
 				_counter = _end+1 if _end == len(_lines)-1 else _end
 				continue
@@ -1534,9 +1573,16 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 				while _l[:2] not in ['#!', '%!'] and _end < len(_lines)-1:
 					_end += 1
 					_l = _lines[_end].strip()
-					if _l and _l[0] not in '#%':
-						_comment = re.search(r'(?<!\\)[#%]', _l)
-						_to_exec.append(_l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)])
+					if _l and  _l[0] not in '%#':
+						_i = 0
+						_ignore = False
+						while _i < len(_l):
+							if _l[_i] in '\'"':
+								_ignore = not _ignore
+							elif not _ignore and (_l[_i] in '#%'):
+								break
+							_i += 1
+						_to_exec.append(_l[:_i])
 
 				_mat_object.sendlines(_to_exec)
 				_counter = _end+1 if _end == len(_lines)-1 else _end
@@ -1545,7 +1591,7 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 		else:
 			raise ValueError('Invalid definition of _lang.')
 
-	ret = Master(r_object=_r_object, mat_object=_mat_object)
+	ret = Master(r_object = _r_object, mat_object = _mat_object, environ = _environ)
 	ret.load_from_dict(_VARIABLES)
 	return ret
 
@@ -1560,7 +1606,7 @@ class Master:
 
 	Unlike in scripts, do not pass misformatted comments.
 		R/bash - # only
-		Matlab - % only
+		Matlab - % or '%{...%}' only
 
 	The Python environment here is only a dictionary to load/store variables.
 	All Python code is expected to be run directly by the user.

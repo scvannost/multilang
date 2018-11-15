@@ -1193,8 +1193,14 @@ contexts:
       pop: true
 
   comments:
+    - match: '^\s*[%#]\{\s*$'
+      scope: punctuation.definition.comment
+      push:
+        - meta_scope: comment.block
+        - match: '^\s*[%#]\}\s*$'
+          pop: true
     - match: "[#%]"
-      scope: punctuation.definition.comment.python
+      scope: punctuation.definition.comment
       push:
         - meta_scope: comment.line
         - match: \n
