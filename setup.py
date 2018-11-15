@@ -8,7 +8,7 @@ setup(
   description = 'Allows for running code in mutliple languages',
   author = 'SC van Nostrand',
   author_email = 'scvannost@gmail.com',
-  download_url = 'https://github.com/scvannost/multilang/archive/0.1.2a1.tar.gz',
+  download_url = 'https://github.com/scvannost/multilang/archive/0.1.2a2.tar.gz',
   url = 'https://github.com/scvannost/multilang',
   keywords = ['R', 'Matlab', 'environment', 'bash', 'multilanguage'],
   install_requires=[
