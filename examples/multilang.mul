@@ -1,5 +1,6 @@
 #! multilang R
 a <- c(1,2,3)
+a
 b <- matrix(1:9,
 	nrow=3, ncol=3)
 # this is an R comment

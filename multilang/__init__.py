@@ -146,6 +146,7 @@ from platform import system
 from random import choices
 import re
 import scipy.io as sio
+import sys
 import subprocess
 from tempfile import NamedTemporaryFile
 
@@ -173,7 +174,7 @@ _IMPORTED = {
 	}
 
 _SUPPORTED = ['python3', 'matlab', 'r', 'bash']
-_VERSION = '0.1.2a2'
+_VERSION = '0.1.3a1'
 
 # Defaults at bottom
 
@@ -215,21 +216,27 @@ def py_to_bash(_line, _environ : dict = None):
 	TypeError
 		If a requested variable is not str, int, float
 	"""
-	if not _environ: _environ = os.environ.copy()
+	## input validation
+	if not _environ: _environ = os.environ.copy() # default
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted _line: ' + _line)
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line: ' + str(_line))
 
 	if _to_load[0] == '':
+		# null case
 		return _environ
 
+	## get the variables
 	_out = {}
 	for _i in _to_load:
 		if _i not in _VARIABLES:
@@ -238,6 +245,8 @@ def py_to_bash(_line, _environ : dict = None):
 			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _VARIABLES[_i]
+
+	# move the variables
 	_environ.update(_out)
 	return _environ
 
@@ -276,27 +285,35 @@ def bash_to_py(_line, _environ : dict, _load : bool = True):
 	NameError
 		If a requested variable is not in the given @_environ
 	"""
+	## input validation
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
+	# null case
 	if _to_load[0] == '':
 		return {}
 
+	# get the variables
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
 			raise NameError(str(_i) + ' not in bash environment.')
 		else:
 			_out[_i] = _environ[_i]
+
 	if _load:
+		# move the variables to python
 		_VARIABLES.updat(_out)
 	return _out
 
@@ -337,22 +354,29 @@ def bash_to_r(_line, _environ : dict, _r_object : RObject = RObject()):
 	NameError
 		If a requested variable is not in the given @_environ
 	"""
+	## input validation
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>,...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 	
 	if not _r_object.isalive:
+		# make it if we need it
 		_r_object = RObject()
 	if _to_load[0] == '':
+		# null case
 		return _r_object
 
+	# get the variables
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
@@ -360,6 +384,7 @@ def bash_to_r(_line, _environ : dict, _r_object : RObject = RObject()):
 		else:
 			_out[_i] = _environ[_i]
 	
+	# send to R
 	_r_object.sendlines([
 			_k + ' <- ' + ('"' + _v + '"' if type(_v) is str else str(_v))
 				for _k, _v in _out.items()
@@ -404,22 +429,29 @@ def bash_to_mat(_line, _environ : dict, _mat_object : MatlabObject = MatlabObjec
 	NameError
 		If a requested variable is not in the given @_environ
 	"""
+	## input validation
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
+		# make it if we need it
 		_mat_object = MatlabObject()
 	if _to_load[0] == '':
+		# null case
 		return _mat_object
 
+	# get the variables
 	_out = {}
 	for _i in _to_load:
 		if _i not in _environ:
@@ -427,9 +459,12 @@ def bash_to_mat(_line, _environ : dict, _mat_object : MatlabObject = MatlabObjec
 		else:
 			_out[_i] = _environ[_i]
 	
+	# bundle them
 	_temp_file = NamedTemporaryFile(suffix='.mat')
 	sio.savemat(_temp_file, _out)
 	_temp_file.seek(0)
+
+	# load them
 	_mat_object.sendline('load \'' + _temp_file.name + '\';')
 
 	return _mat_object
@@ -474,24 +509,31 @@ def r_to_bash(_line, _r_object : MatlabObject, _environ : dict = None):
 	TypeError
 		If a requested variable is not str, int, float
 	"""
+	## input validation
 	if not _r_object.isalive:
+		# can't do anythin
 		raise RuntimeError('R connection was killed before things could be brought back to Python.')
-	if not _environ: _environ = os.environ.copy()
+	if not _environ: _environ = os.environ.copy() # default
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
+	# null case
 	if _to_load[0] == '':
 		return _environ
 
+	# get the variables
 	_dump = r_to_py(_line, _r_object, _load=False)
 	_out = {}
 	for _i in _to_load:
@@ -501,6 +543,8 @@ def r_to_bash(_line, _r_object : MatlabObject, _environ : dict = None):
 			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _dump[_i]
+
+	# load them
 	_environ.update(_out)
 	return _environ
 
@@ -544,24 +588,31 @@ def mat_to_bash(_line, _mat_object : MatlabObject, _environ : dict = None):
 	TypeError
 		If a requested variable is not str, int, float
 	"""
+	## input validation
 	if not _mat_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
-	if not _environ: _environ = os.environ.copy()
+	if not _environ: _environ = os.environ.copy() # default
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
+	# null case
 	if _to_load[0] == '':
 		return
 
+	# get the variables
 	_dump = mat_to_py(_line, _mat_object, _load=False)
 	_out = {}
 	for _i in _to_load:
@@ -571,6 +622,8 @@ def mat_to_bash(_line, _mat_object : MatlabObject, _environ : dict = None):
 			raise TypeError('Only str, int, float can be passed to bash')
 		else:
 			_out[_i] = _dump[_i]
+
+	# load them
 	_environ.update(_out)
 	return _environ
 
@@ -611,22 +664,29 @@ def py_to_r(_line, _r_object : RObject = RObject()):
 	NameError
 		If a requested variable is not in the Python environment
 	"""
+	## input validation
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 	
 	if not _r_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
+		# null case
 		return _r_object
 
+	# check the variables
 	_temp = []
 	_counter = 0
 	while _counter < len(_to_load):
@@ -638,41 +698,46 @@ def py_to_r(_line, _r_object : RObject = RObject()):
 				_counter += 1
 				_item += ',' + _to_load[_counter]
 
-		if _item not in _VARIABLES:
-			try: eval(_item.split('(')[0])
+		# look for them
+		if _item not in _VARIABLES: # hard case
+			# look for it
+			try:
+				# make sure it's a valid function call
+				if len(_item.split('(')) > 1: eval(_item.split('(')[0])
+				else: raise Exception()
 			except: raise NameError(_item.split('(')[0] + ' not in Python environment.')
-			else:
+			else: # if it's there
 				# _item is func(a[, b])
+				# look for the parameters
 				for _i in _item[:-1].split('(')[1].split(','):
 					if _i not in _VARIABLES:
+						# if it exists, that's fine
 						try: eval(_i)
 						except: raise NameError(_i + ' not in Python environment.')
 				_temp.append(_item)
-		else: _temp.append(_item)
+		else: _temp.append(_item) # easy case
 
 		_counter += 1
-
 	_to_load = _temp
 
+	# get them
 	_out = {}
 	for _i in _to_load:
 		if '(' in _i and ')' in _i:
-			_name = _i.split('(')[1].split(')')[0]
-			_item = [_VARIABLES[_j] if _j in _VARIABLES else eval(_j) for _j in _name.split(',')]
+			# _i = 'func(a[, b])'
+			_items = _i.split('(')[1].split(')')[0].split(',')
 
-			try:
-				_func = eval(_i.split('(')[0])
-			except Exception:
-				_out[_name] = _item
-			else:
-				_out.update(_func(*_name.split(',')))
+			_func = eval(_i.split('(')[0]) # get the func
+			_out.update(_func(*_items)) # evaluate it
 
 		else: _out[_i] = _VARIABLES[_i]
 
+	# bundle the variables
 	_temp_file = NamedTemporaryFile()
 	sio.savemat(_temp_file, _out)
 	_temp_file.seek(0)
 	
+	# send them
 	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendlines(
 		[
@@ -723,22 +788,29 @@ def py_to_mat(_line, _mat_object : MatlabObject = MatlabObject()):
 	NameError
 		If a requested variable is not in the Python environment
 	"""
+	## input validation
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
+		# null case
 		return _mat_object
 
+	# check the variables
 	_temp = []
 	_counter = 0
 	while _counter < len(_to_load):
@@ -750,42 +822,42 @@ def py_to_mat(_line, _mat_object : MatlabObject = MatlabObject()):
 				_counter += 1
 				_item += ',' + _to_load[_counter]
 
-		if _item not in _VARIABLES:
-			try: eval(_item.split('(')[0])
+		if _item not in _VARIABLES: # hard case
+			try: # make sure it's a valid function call
+				if len(_item.split('(')) > 1: eval(_item.split('(')[0])
+				else: raise Exception()
 			except: raise NameError(_item.split('(')[0] + ' not in Python environment.')
-			else:
+			else: # if it exists
+				# check the parameters
 				# _item = func(a[, b])
 				for _i in _item[:-1].split('(')[1].split(','):
-					if _i not in _VARIABLES:
+					if _i not in _VARIABLES: # if it's there, that's cool
 						try: eval(_i)
 						except: raise NameError(_i + ' not in Python environment.')
 				_temp.append(_item)
-		else: _temp.append(_item)
-
+		else: # easy case
+			_temp.append(_item)
 		_counter += 1
-
 	_to_load = _temp
 
+	# get the variables
 	_out = {}
 	for _i in _to_load:
-		if '(' in _i and ')' in _i:
-			_name = _i.split('(')[1].split(')')[0]
-			_item = [_VARIABLES[_j] if _j in _VARIABLES else eval(_j) for _j in _name.split(',')]
+		if '(' in _i and ')' in _i: # function call
+			_items = _i.split('(')[1].split(')')[0].split(',')
 
-			try:
-				_func = eval(_i.split('(')[0])
-			except Exception:
-				_out[_name] = _item
-			else:
-				_out.update(_func(*_name.split(',')))
+			_func = eval(_i.split('(')[0]) # get the func
+			_out.update(_func(*_items)) # evaluate it
 
-		else: _out[_i] = _VARIABLES[_i]
+		else: _out[_i] = _VARIABLES[_i] # easy case
 
+	# bundle them
 	_temp_file = NamedTemporaryFile(suffix='.mat')
 	sio.savemat(_temp_file, _out)
 	_temp_file.seek(0)
-	_mat_object.sendline('load \'' + _temp_file.name + '\';')
 
+	# load them
+	_mat_object.sendline('load \'' + _temp_file.name + '\';')
 	return _mat_object
 
 def r_to_py(_line, _r_object : RObject, _load : bool = True):
@@ -824,38 +896,47 @@ def r_to_py(_line, _r_object : RObject, _load : bool = True):
 	NameError
 		If a requested variable is not in the given R environment
 	"""
+	## input validation
 	if not _r_object.isalive:
+		# can't do anything
 		raise RuntimeError('R connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
+	# null case
 	if _to_load[0] == '':
 		return
 
+	# check the variables
 	_who = _r_object.who
 	for i in _to_load:
 		if i not in _who:
 			raise NameError(str(i) + ' not in R environment.')
 
+	# bundle them
 	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendline(_random_name + '<- tempfile(); ' + _random_name)
 	_temp_file = str(_r_object.before).split('"')[1]
 
-
+	# get them
 	_r_object.sendlines([
 			'writeMat(paste(' + _random_name + ',".mat",sep=""), ' + ', '.join([i + '=' + i for i in _to_load]) + ')',
 			'rm(' + _random_name + ')'
 		])
 
+	# load them
 	_loaded = sio.loadmat(_temp_file, squeeze_me=True)
 	del _loaded['__globals__'], _loaded['__header__'], _loaded['__version__']
 	if _load:
@@ -900,41 +981,52 @@ def r_to_mat(_line, _r_object : RObject, _mat_object : MatlabObject = MatlabObje
 	NameError
 		If a requested variable is not in the given R environment
 	"""
+	## input validation
 	if not _r_object.isalive:
+		# can't do anything
 		raise RuntimeError('R connection was killed before things could be brought to Matlab.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
 	if not _mat_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be send to it.')
 	if _to_load[0] == '':
+		# null case
 		return _mat_object
 
+	# check the variables
 	_who = _r_object.who
 	for i in _to_load:
 		if i not in _who:
+			print(_who)
 			raise NameError(str(i) + ' not in R environment.')
 
+	# bundle them
 	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_r_object.sendline(_random_name + '<- tempfile(); ' + _random_name)
 	_temp_file = str(_r_object.before).split('"')[1]
 
+	# get them
 	_r_object.sendlines([
 			'writeMat(paste(' + _random_name + ',".mat", sep=""), ' + ', '.join([ i + '=' + i for i in _to_load]) + ')',
 			'rm(' + _random_name + ')'
 		])
 
+	# load them
 	_mat_object.sendline('load \'' + _temp_file + '\';')
-
 	return _mat_object
 
 def mat_to_py(_line, _mat_object : MatlabObject, _load : bool = True):
@@ -973,36 +1065,46 @@ def mat_to_py(_line, _mat_object : MatlabObject, _load : bool = True):
 	NameError
 		If a requested variable is not in the given Matlab environment
 	"""
+	## input validation
 	if not _mat_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__'):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
+	# null case
 	if _to_load[0] == '':
 		return
 
+	# check the variables
 	_who = _mat_object.who
 	if any([i not in _who for i in _to_load]):
 		raise NameError(str(i) + ' not in Matlab environment')
 
+	# bundle them
 	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_mat_object.sendline(_random_name + ' = tempname')
 	_temp_file = _mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 
+	# get them
 	_mat_object.sendlines([
 			'save ' + _temp_file + ' ' + ' '.join(_to_load),
 			'clear ' + _random_name
 		])
 
+	# load them
 	_loaded = sio.loadmat(_temp_file, squeeze_me=True)
 	del _loaded['__globals__'], _loaded['__header__'], _loaded['__version__']
 	if _load:
@@ -1047,39 +1149,50 @@ def mat_to_r(_line, _mat_object : MatlabObject, _r_object : RObject = RObject())
 	NameError
 		If a requested variable is not in the given Matlab environment
 	"""
+	## input validation
 	if not _mat_object.isalive:
+		# can't do anything
 		raise RuntimeError('Matlab connection was killed before things could be brought back to Python.')
 
 	if type(_line) is str and ('#!' in _line or '%!' in _line):
+		# _line = '#! <lang> -> <vars>'
 		if not '->' in _line:
 			raise ValueError('Misformatted line: "' + _line + '"')
 		_to_load = _line.split('->')[1].replace(' ','').split(',')
 	elif type(_line) is str:
+		# _line = '<vars>'
 		_to_load = _line.replace(' ','').split(',')
 	elif hasattr(_line, '__iter__') and all([type(i) is str for i in _line]):
+		# _line = [<var i>, ...]
 		_to_load = list(_line)
 	else:
 		raise ValueError('Unrecognized _line')
 
 	if not _r_object.isalive:
-		raise RuntimeError('Matlab connection was killed before things could be send to it.')
+		# can't do anything
+		raise RuntimeError('R connection was killed before things could be send to it.')
 	if _to_load[0] == '':
+		# null case
 		return _r_object
 
+	# check the variables
 	_who = _mat_object.who
 	for i in _to_load:
 		if i not in _who:
 			raise NameError(str(i) + ' not in Matlab environment')
 
+	# bundle them
 	_random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 	_mat_object.sendline(_random_name + ' = tempname')
 	_temp_file = _mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
 
+	# get them
 	_mat_object.sendlines([
 			'save ' + _temp_file + '.mat ' + ' '.join(_to_load),
 			'clear ' + _random_name
 		])
 	
+	# load them
 	_r_object.sendlines(
 		[
 			'library("R.matlab")',
@@ -1091,7 +1204,6 @@ def mat_to_r(_line, _mat_object : MatlabObject, _r_object : RObject = RObject())
 			'rm(' + _random_name + ')'
 		]
 	)
-
 	return _r_object
 
 
@@ -1135,9 +1247,9 @@ def dump_mat(_file, **kwargs):
 		If filelike, has a `write` method
 	**kwargs : Passed to `scipy.io.savemat`.
 	"""
-	if hasattr(_file, 'write'):
+	if hasattr(_file, 'write'): # if filelike
 		sio.savemat(_file, *[k for k,v in _VARIABLES.items() if not k[0] is '_'], **kwargs)
-	else:
+	else: # file name
 		sio.savemat(open(_file, 'w'), *[k for k,v in _VARIABLES.items() if not k[0] is '_'], **kwargs)
 
 def dump_json(_file, **kwargs):
@@ -1150,9 +1262,9 @@ def dump_json(_file, **kwargs):
 		If filelike, has a `write` method
 	**kwargs : Passed to `json.dump`.
 	"""
-	if hasattr(_file,'write'):
+	if hasattr(_file,'write'): # if filelike
 		json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, _file, **kwargs)
-	else:
+	else: # file name
 		json.dump({k:v for k,v in _VARIABLES.items() if not k[0] is '_'}, open(_file, 'w'), **kwargs)
 
 def dumps_json(**kwargs):
@@ -1190,28 +1302,31 @@ def as_array(var: str, extras: str = 'True'):
 	If var is a pd.DataFrame:
 		<var>_index and <var>_columns are also passed as lists.
 	"""
-
+	# get it
 	obj = _VARIABLES[var]
 
 	if extras != 'True':
+		# if nothing special
 		return {var: np.array(obj)}
 	elif type(obj) is pd.core.frame.DataFrame:
+		# handle DataFrames
 		return {var: np.array(obj),
 				var+'_index': obj.index.values.tolist(),
 				var+'_columns': obj.columns.values.tolist()}
-	else:
+	else: # everything else is simple
 		return {var: np.array(obj)}
 
 # ---------------------------- Main Functions ---------------------------- #
-def as_multilang_windows(_lines):
+def as_multilang_windows(*args, **kwargs):
 	"""A simple interface for multilang coding on Windows.
 	Not yet implemented, but will recapitulate `as_multilang_Unix`.
 	"""
 	raise NotImplementedError('To be used in a Windows environment')
 
 
-def as_multilang_unix(_lines, _r_object : RObject = RObject(),
-		_mat_object : MatlabObject = MatlabObject(), _environ : dict = None, **kwargs):
+def as_multilang_unix(_lines, _load_r : bool = False, _r_object : RObject = None,
+			_mat_object : MatlabObject = None, _environ : dict = None,
+			_timeout : int = 600, _verbosity : int = 1, **kwargs):
 	"""Run a multilang script (implementation for Unix)
 
 	Parameters
@@ -1222,17 +1337,35 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 		If str, bytes: lines separated by line breaks; eg. \\r\\n, \\r, \\n
 		if Iterable: each entry is a line; no line breaks
 
+	_load_r : bool
+		Whether to load the existing R environment
+		Only checked if a new R environment is created
+		Default: False
+
 	_r_object : Optional[RObject]
 		An R environment to use
-		Default: new RObject()
+		Default: new RObject
 
 	_mat_object : Optional[MatlabObject]
 		A Matlab environment to use
-		Default: new MatlabObject()
+		Default: new MatlabObject
 
 	_environ : dict[str: str,int,float]
 		Variables to be used in bash
 		Default: os.environ
+
+	_timeout : int
+		Number of seconds until time out
+		Only used if a new R or Matlab environment is being created
+		Default: 600
+
+	_verbosity : int
+		How much to print while this function runs
+		0 <= _verbosity <= 3
+		If 0: silent
+		If 1: output from each environment
+		If 2: plus when switching between environments
+		If 3: plus additional information
 
 	**kwargs : dict[str:object]
 		Add as variables to the Python environment by calling `load`
@@ -1350,10 +1483,7 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 			if not any([i in _l[0].lower() for i in 'rpmb']) or len(_l) != 2:
 				raise ValueError('Improperly formatted call in line ' + str(_n+2))
 
-	while not _lines[0]:
-		_lines = _lines[1:]
-
-	
+	# get the starting environment
 	_temp = _lines[0].split(' ')[-1].lower()
 	if 'multilang' in _temp or 'p' in _temp:
 		_lang = 'p'
@@ -1361,17 +1491,28 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 			_lang = 'r'
 	elif 'm' in _temp:
 		_lang = 'm'
-	elif 'b' in _temp and not 'm' in _temp:
+	elif 'b' in _temp and not 'matlab' in _temp:
 		# avoid b from matlab
 		_lang = 'b'
 	else:
 		raise ValueError('Unknown language was specified')
-	if kwargs:
-		_VARIABLES.update(kwargs)
-	if not _environ: _environ = os.environ.copy()			
 
-	# loop through given code
-	_counter = 1 # skip first line
+	# deal with loading kwargs
+	if kwargs: _VARIABLES.update(kwargs)
+
+	# defaults
+	if not _environ: _environ = os.environ.copy()
+	if not _r_object: _r_object = RObject(load=_load_r, timeout=_timeout)
+	if not _mat_object: _mat_object = MatlabObject(timeout=_timeout)
+
+	# check in range
+	if _verbosity < 0: _verbosity = 0
+	elif _verbosity > 3: _verbosity = 3
+
+	# loop through code
+	# each endpoint increments counter and continues
+	if _verbosity >= 2: print('Starting in ' + ('Python' if _lang == 'p' else 'R' if _lang == 'r' else 'Matlab' if _lang == 'm' else 'bash'))
+	_counter = 1 # skip multilang declaration
 	while _counter < len(_lines):
 		_current_line = _lines[_counter].strip()
 		if _current_line in ['%{','#{']:
@@ -1382,42 +1523,67 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 			_counter = _i+1
 			continue
 		elif not _current_line or (_current_line[0] in '#%' and _current_line[1] != '!'):
+			# line comment
 			_counter += 1
 			continue
 
 		# if currently in python
 		elif _lang == 'p':
-			if _current_line[:2] in ['#!','%!']:
+			if _current_line[:2] in ['#!','%!']: # if switching
 				if 'r' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to R')
 					_lang = 'r'
 					_r_object = py_to_r(_current_line, _r_object)
 				elif 'm' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to Matlab')
 					_lang = 'm'
 					_mat_object = py_to_mat(_current_line, _mat_object)
 				elif 'b' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to bash')
 					_lang = 'b'
 					_environ = py_to_bash(_current_line, _environ)
 				_counter += 1
 				continue
 			elif '@multilang' in _current_line and re.search(r'^def\s*[a-zA-Z_]+\s*\(.*?\)\s*:$', _lines[_counter+1].strip()):
+				# declaring function in the local space
+
+				# get the next line
 				_end = _counter + 1
 				_l = _lines[_end].strip(' ')
-				_comment = re.search(r'(?<!\\)[#%]', _l)
-				_l = _l[:_comment.end() if _comment and _comment.start() > 0 else len(_l)]
+				
+				# look for comments
+				_i = 0
+				_ignore = False
+				while _i < len(_l):
+					if _l[_i] in '\'"':
+						_ignore = not _ignore
+					elif not _ignore and (_l[_i] == '#' or (_l[_i] == '%' and _l[_i+1] != '=')):
+						break
+					_i += 1
+				_l = _l[:_i]
 
+				# get the function name
 				_name = _l.split('def ')[1].split('(')[0].strip()
 
+				# find the indent so we know when to stop
 				_search = re.search(r'\t+(?:.)', _l)
 				_tabs = _search.end() if _search and _search.end() > 0 else 0
+
+				# get the code
 				_to_exec = [_l[_tabs:]]
 				while _l and _l[:2] not in ['#!', '%!'] and _end < len(_lines)-1:
+					# get the line
 					_end += 1
 					_l = _lines[_end]
+
+					# get indentation
 					_search = re.search(r'[\t(?: {4})]+(?:.)', _l)
 					_curr_tabs = _search.end() if _search and _search.end() > 0 else 0
-					if _curr_tabs <= _tabs:
+
+					if _curr_tabs <= _tabs: # done!
 						break
 					elif _l and _l[0] not in '%#':
+						# ignore comments
 						_i = 0
 						_ignore = False
 						while _i < len(_l):
@@ -1427,36 +1593,87 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 								break
 							_i += 1
 
+						# push it!
 						_to_exec.append(_l[:_i])
-				# exec('\n'.join(_to_exec))
+
+				# define it and add it
+				if _verbosity == 0:
+					_old = sys.stdout
+					sys.stdout = None
+					try:
+						exec('\n'.join(_to_exec))
+					except Exception as e:
+						sys.stdout = _old
+						raise e
+					else:
+						sys.stdout = _old
+					del _old
+				else:
+					exec('\n'.join(_to_exec))
+
 				globals().update({_name: locals()[_name]})
 				_counter = _end
 				continue
 
-			else: # otherwise, do the thing
-				globals().update(_VARIABLES)
+			elif '@multilang' in _current_line:
+				# skip if the next line isn't a `def`
+				_counter += 1
+				continue
 
+			else: # otherwise, do the thing
+				# make sure we're up to date
+				globals().update(_VARIABLES)
 				_end = _counter
 				_l = _lines[_end].strip(' ')
-				_comment = re.search(r'(?<!\\)[#%]', _l)
-				_l = _l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)]
 
+				# remove comments
+				_i = 0
+				_ignore = False
+				while _i < len(_l):
+					if _l[_i] in '\'"':
+						# ignore comment markers in strings
+						_ignore = not _ignore
+					elif not _ignore and (_l[_i] == '#' or (_l[_i] == '%' and _l[_i+1] != '=')):
+						# if we're not in a string and it's a comment but not %=
+						break # stop before here
+					_i += 1
+				_l = _l[:_i]
+
+				# get the code to run
+				# have to build it up for exec
 				_to_exec = [_l] if _l and _l[0] not in '%#' else []
 				while _l and _l[:2] not in ['#!','%!'] and '@multilang' not in _l and _end < len(_lines)-1:
+					# stop at statements or local function declaration
 					_end += 1
 					_l = _lines[_end]
 					if _l and _l[0] not in '%#':
+						# ignore comments
 						_i = 0
 						_ignore = False
 						while _i < len(_l):
 							if _l[_i] in '\'"':
+								# ignore if in string
 								_ignore = not _ignore
 							elif not _ignore and (_l[_i] == '#' or (_l[_i] == '%' and _l[_i+1] != '=')):
-								break
+								break # stop before here
 							_i += 1
 
 						_to_exec.append(_l[:_i])
-				exec('\n'.join(_to_exec))
+
+				# define it and add it
+				if _verbosity == 0:
+					_old = sys.stdout
+					sys.stdout = None
+					try:
+						exec('\n'.join(_to_exec))
+					except Exception as e:
+						sys.stdout = _old
+						raise e
+					else:
+						sys.stdout = _old
+					del _old
+				else:
+					exec('\n'.join(_to_exec))
 
 				_VARIABLES.update({k:v for k,v in locals().items() if not k[0] is '_'})
 				_counter = _end+1 if _end == len(_lines)-1 else _end
@@ -1464,29 +1681,48 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 
 		# if currently in bash
 		elif _lang == 'b':
-			if _current_line[:2] in ['#!', '%!']:
+			if _current_line[:2] in ['#!', '%!']: # switching environments
 				if 'p' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to Python')
 					_lang = 'p'
 					mat_to_py(_current_line, _mat_object)
 				elif 'r' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to R')
 					_lang = 'r'
 					_r_object = mat_to_r(_current_line, _mat_object, _r_object)
 				elif 'm' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to Matlab')
 					_lang = 'm'
 					_mat_object = py_to_mat(_current_line, _mat_object)
 				_counter += 1
 				continue
 			else: # otherwise do the thing
+				# get the line
 				_end = _counter
 				_l = _lines[_end].strip(' ')
-				_comment = re.search(r'(?<!\\)[#%]', _l)
-				_l = _l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)]
 
+				# remove comments
+				_i = 0
+				_ignore = False
+				while _i < len(_l):
+					if _l[_i] in '\'"':
+						# ignore comment markers in strings
+						_ignore = not _ignore
+					elif not _ignore and _l[_i] in '#%':
+						# if we're not in a string and it's a comment
+						break # stop before here
+					_i += 1
+				_l = _l[:_i]
+
+
+				# get the code to run
+				# have to bundle for subprocess.run
 				_to_exec = [_l] if _l and _l[0] not in '%#' else []
 				while _l and _l[:2] not in ['#!','%!'] and _end < len(_lines)-1:
 					_end += 1
 					_l = _lines[_end]
 					if _l and  _l[0] not in '%#':
+						# ignore comments
 						_i = 0
 						_ignore = False
 						while _i < len(_l):
@@ -1497,35 +1733,41 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 							_i += 1
 
 						_to_exec.append(_l[:_i])
-				subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash').check_returncode()
 
+				# run in terminal
+				# raises error if return code not 0
+				if _verbosity == 0: subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash', stdout=open('/dev/null', 'w')).check_returncode()
+				else: subprocess.run('\n'.join(_to_exec), shell=True, env={k:str(v) for k,v in _environ.items()}, executable='/bin/bash').check_returncode()
+
+				# update and move on
 				_environ = os.environ.copy()
 				_counter = _end+1 if _end == len(_lines)-1 else _end
+				continue
 
 		# if currently in R
 		elif _lang == 'r':
-			if _current_line[:2] in ['#!','%!']:
+			if _current_line[:2] in ['#!','%!']: # switching environments
 				if 'p' in _current_line.lower().split('->')[0]: # if switching to Python
+					if _verbosity >= 2: print('Switching to Python')
 					_lang = 'p'
 					r_to_py(_current_line, _r_object)
 				elif 'm' in _current_line.lower().split('->')[0]: # if switching to Matlab
+					if _verbosity >= 2: print('Switching to Matlab')
 					_lang = 'm'
 					_mat_object = r_to_mat(_current_line, _r_object, _mat_object)
 				elif 'b' in _current_line.lower().split('->')[0]: # if switching to bash
+					if _verbosity >= 2: print('Switching to bash')
 					_lang = 'b'
 					_environ = r_to_bash(_line, _environ)
 				_counter += 1
 				continue
 			else: # otherwise do the thing
+				# go through the code
 				_end = _counter
-				_l = _lines[_end].strip()
-				_comment = re.search(r'(?<!\\)[#%]', _l)
-				_l = _l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)]
-				_to_exec = [_l] if _l and _l[0] not in '#%' else []
-				while _l[:2] not in ['#!', '%!'] and _end < len(_lines)-1:
-					_end += 1
+				while _end < len(_lines) and _lines[_end].strip()[:2] not in ['#!', '%!']:
 					_l = _lines[_end].strip()
 					if _l and _l[0] not in '#%':
+						# remove comments
 						_i = 0
 						_ignore = False
 						while _i < len(_l):
@@ -1535,45 +1777,51 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 									_l[_i] == '#' or (
 										_l[_i] == '%' and 
 										# have to ignore all the %...% operators
-										any([j in _l[:_i] for j in
-											['in%','between%', 'chin%', '+%', '+replace%',':%','do%','dopar%',
-											 '>%','<>%','T>%','/%', '*%','o%','x%','*%']
+										not any([('%' + j + '%') in _l[_i:_i+10] for j in
+											['in','between', 'chin', '+', '+replace',':','do','dopar',
+											 '>','<>','T>','/', '*','o','x','*']
 										])
 									)
 								):
 								break
 							_i += 1
 
-						_to_exec.append(_l[:_u])
-				_r_object.sendlines(_to_exec)
-				_counter = _end+1 if _end == len(_lines)-1 else _end
+						# do the thing
+						_r_object.sendline(_l[:_i])
+						if _verbosity > 0 and len(_r_object.before.split(_l[:_i])) > 1:
+							_temp = _r_object.before.split(_l[:_i])[1].strip()
+							if _temp: print(_temp)
+					_end += 1
+
+				# move on
+				_counter = _end
 				continue
 
 		# if currently in Matlab
 		elif _lang == 'm':
-			if _current_line[:2] == '#!':
+			if _current_line[:2] == '#!': # switching environments
 				if 'p' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to Python')
 					_lang = 'p'
 					mat_to_py(_current_line, _mat_object)
 				elif 'r' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to R')
 					_lang = 'r'
 					_r_object = mat_to_r(_current_line, _mat_object, _r_object)
 				elif 'b' in _current_line.lower().split('->')[0]:
+					if _verbosity >= 2: print('Switching to bash')
 					_lang = 'b'
 					_environ = mat_to_bash(_line, _environ)
 				_counter += 1
 				continue
 			else: # otherwise do the thing
+				# go through the code
 				_end = _counter
-				_l = _lines[_end].strip()
-				_comment = re.search(r'(?<!\\)[#%]', _l)
-				_l = _l[:_comment.start() if _comment and _comment.start() > 0 else len(_l)]
-				_to_exec = [_l] if _l[0] not in '#%' else []
-
-				while _l[:2] not in ['#!', '%!'] and _end < len(_lines)-1:
-					_end += 1
+				_done = ''
+				while _end < len(_lines) and _lines[_end].strip()[:2] not in ['#!', '%!']:
 					_l = _lines[_end].strip()
 					if _l and  _l[0] not in '%#':
+						# skip comments
 						_i = 0
 						_ignore = False
 						while _i < len(_l):
@@ -1582,15 +1830,48 @@ def as_multilang_unix(_lines, _r_object : RObject = RObject(),
 							elif not _ignore and (_l[_i] in '#%'):
 								break
 							_i += 1
-						_to_exec.append(_l[:_i])
 
-				_mat_object.sendlines(_to_exec)
-				_counter = _end+1 if _end == len(_lines)-1 else _end
+						# do the thing
+						# if command doesn't finish, matlab doesn't send anything in return
+						_mat_object.send(_l[:_i] + '\n')
+						_mat_object.expect('\r\n')
+
+						if _l[-3:] == '...':
+							# if end with line continuation, nothing
+							continue
+
+						# look for balancing things to see if done
+						for i in _l:
+							if i in '([{':
+								_done += i
+							elif i in ')]}':
+								try:
+									if i == ')' and _done[-1] == '(':
+										_done = _done[:-1]
+									elif i == ']' and _done[-1] == '[':
+										_done = _done[:-1]
+									elif i == '}' and _done[-1] == '}':
+										_done = _done[-1]
+								except Exception:
+									pass
+
+						if len(_done) == 0:
+							# if everything matches up, start over
+							_mat_object.expect('>>')
+							if _verbosity >= 1 and _mat_object.before != '':
+								# print if we're printing
+								print(_mat_object.before)
+
+					_end += 1
+
+				# move on
+				_counter = _end
 				continue
 
-		else:
-			raise ValueError('Invalid definition of _lang.')
+		else: # shouldn't get here ever
+			raise ValueError('Invalid definition of _lang, contact scvannost@gmail.com.')
 
+	# return
 	ret = Master(r_object = _r_object, mat_object = _mat_object, environ = _environ)
 	ret.load_from_dict(_VARIABLES)
 	return ret
@@ -1670,7 +1951,7 @@ class Master:
 	"""
 	def __init__(self, r : bool = True, mat : bool = True, load_r : bool = False,
 			r_object : RObject = None, mat_object : MatlabObject = None, environ : dict = None,
-			m : bool = True, matlab : bool = True):
+			timeout : int = 600, m : bool = True, matlab : bool = True):
 		"""Setup a Master object
 
 		Parameters
@@ -1694,6 +1975,10 @@ class Master:
 		environ : dict[str: str,int,float]
 			A dictionary to use for the bash environment
 			Default: os.environ
+		timeout : int
+			Number of seconds until time out
+			Only used if new R or Matlab environments are being generated
+			Default: 600
 
 		Returns
 		-------
@@ -1703,17 +1988,22 @@ class Master:
 		if system() == 'Windows':
 			raise NotImplementedError('Not implemented for Windows')
 
-		if not r_object: self._r_object = RObject(r, load_r)
+		## Setup environments
+		# R
+		if not r_object: self._r_object = RObject(r, load_r, timeout)
 		else: self._r_object = r_object
 
+		# Matlab
 		mat = mat and m and matlab
-		if not mat_object: self._mat_object = MatlabObject(mat)
+		if not mat_object: self._mat_object = MatlabObject(mat, timeout)
 		else: self._mat_object = mat_object
 
+		# bash
 		if not environ: self. _environ = os.environ.copy()
 		else: self._environ = environ
 		self._orig_env = os.environ.copy()
 
+		# Python
 		self._variables = {}
 
 	@property
@@ -1821,9 +2111,11 @@ class Master:
 		ValueError
 			If @precendence not in [None, 'r', 'mat', 'all']
 		"""
+		# can't do anything
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		elif not self.isalive_mat: raise RuntimeError('mat_object not alive')
 
+		# get all the variables from R
 		names = self.who_r
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
@@ -1835,6 +2127,7 @@ class Master:
 		r = sio.loadmat(temp_file, squeeze_me=True)
 		del r['__globals__'], r['__header__'], r['__version__']
 
+		# get all the variables from Matlab
 		names = self.who_mat
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
@@ -1846,37 +2139,42 @@ class Master:
 		mat = sio.loadmat(temp_file, squeeze_me=True)
 		del mat['__globals__'], mat['__header__'], mat['__version__']
 
-		if not precedence:
+		if not precedence: # no repeats allowed
 			for i in r:
-					raise NameError('Repeated variable name ' + i)
+				if i in mat:
+					raise NameError('Repeated variable name: ' + i)
 			# if it makes it here, no repeats
 			mat.update(r)
 			ret = mat
 		
-		elif 'r' in precedence:
+		elif 'r' in precedence: # R > Matlab
 			mat.update(r)
 			ret = mat
-		elif 'm' in precedence:
+		elif 'm' in precedence: # Matlab > R
 			r.update(mat)
 			ret = r
 
-		elif precedence == 'all':
+		elif precedence == 'all': # both
+			# find the ones we have to fix
 			fix = []
 			for i in r:
 				if i in mat:
 					fix.append(i)
 
+			# fix them
 			for i in fix:
 				r['r_'+i] = r[i]
 				del r[i]
 				mat['mat_'+i] = mat[i]
 				del mat[i]
 
+			# no more overlaps
 			mat.update(r)
 			ret = mat
-		else:
+		else: # validation
 			raise ValueError('@precedence must be \'r\', \'mat\', \'all\', or None')
 
+		# load to Python and return
 		if load: self._variables.update(ret)
 		return ret
 
@@ -1910,9 +2208,35 @@ class Master:
 		"""Run R code"""
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
-		while len(code[-1]) < 1:
-			code = code[:-1]
-		self.r_object.sendlines(code)
+
+		end = 0
+		while end < len(code) and code[end].strip()[:2] not in ['#!', '%!']:
+			l = code[end].strip()
+			if l and l[0] not in '#%':
+				# remove comments
+				i = 0
+				ignore = False
+				while i < len(l):
+					if l[i] in '\'"':
+						ignore = not ignore
+					elif not ignore and (
+							l[i] == '#' or (
+								l[i] == '%' and 
+								# have to ignore all the %...% operators
+								any([('%' + j + '%') in _l[i:i+10] for j in
+									['in','between', 'chin', '+', '+replace',':','do','dopar',
+									 '>','<>','T>','/', '*','o','x','*']
+								])
+							)
+						):
+						break
+					i += 1
+
+				# do the thing
+				self.r_object.sendline(l[:i])
+				temp = self.r_object.before.split(l[:i])[1].strip()
+				if temp: print(temp)
+			_end += 1
 
 	def r_to_m(self, names):
 		"""See `r_to_mat`"""
@@ -1938,26 +2262,31 @@ class Master:
 		NameError
 			If a variable not in the R environment
 		"""
+		## input validation
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		elif not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check the variables
 		who = self.who_r
-		if any([i not in who for i in names]):
-			raise NameError(str(i) + ' not in R environment')
+		for i in names:
+			if i not in who:
+				raise NameError(str(i) + ' not in R environment')
 
+		# bundle them
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
 		temp_file = str(self.r_object.before).split('"')[1]
+
+		# get them
 		self.r_object.sendlines([
 				'writeMat(paste(' + random_name + ',".mat", sep=""), ' + ', '.join([i + '=' + i for i in names]) + ')',
 				'rm(' + random_name + ')'
 			])
 
+		# load them
 		self.mat_object.sendline('load \'' + temp_file + '\';')
 
 	def r_to_py(self, names, load : bool = True):
@@ -1987,25 +2316,30 @@ class Master:
 		NameError
 			If a variable not in the R environment
 		"""
+		## input validation
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check the variables
 		who = self.who_r
 		for i in names:
 			if i not in who:
 				raise NameError(str(i) + ' not in R environment')
 
+		# bundle them
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendline(random_name + '<- tempfile(); ' + random_name)
 		temp_file = str(self.r_object.before).split('"')[1]
+
+		# get them
 		self.r_object.sendlines([
 				'writeMat(' + random_name + ', ' + ', '.join([i + '=' + i for i in names]) + ')',
 				'rm(' + random_name + ')'
 			])
+
+		# load them and return
 		ret = sio.loadmat(temp_file, appendmat=False, squeeze_me=True)
 		del ret['__globals__'], ret['__header__'], ret['__version__']
 		if load: self._variables.update(ret)
@@ -2032,13 +2366,13 @@ class Master:
 		TypeError
 			If a variable is not str,int,float
 		"""
+		## input validation
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check and get the variables
 		dump = self.dump_r(load=False)
 		ret = {}
 		for i in names:
@@ -2048,6 +2382,8 @@ class Master:
 				raise TypeError('Only str, int, float can be passed to bash')
 			else:
 				ret[i] = _dump[i]
+
+		# load
 		self._environ.update(ret)
 
 	def py_to_r(self, names, **kwargs):
@@ -2071,21 +2407,21 @@ class Master:
 		NameError
 			If a variable not in the Python environment
 		"""
+		## input validation
 		if not self.isalive_r: raise RuntimeError('r_object not alive')
+		if type(names) is str: names = names.replace(' ','').split(',')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized name')
 
-		if type(names) is str:
-			names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized name')
-
+		# check the variables
 		for i in names:
 			if i not in self._variables:
 				raise NameError(i + ' not in Python environment.')
 
+		# get them
 		to_load = {i: self._variables[i] for i in names}
 		if 'as_array' in kwargs and kwargs['as_array']:
+			# do as_array and replace
 			temp = list(to_load.keys())
 			if 'extras' in kwargs:
 				extras = kwargs['extras']
@@ -2094,10 +2430,12 @@ class Master:
 				temp = [as_array(i) for i in temp]
 			to_load = {k:v for d in temp for k,v in d.items()}
 
+		# bundle them
 		temp_file = NamedTemporaryFile(suffix='.mat')
 		sio.savemat(temp_file, to_load)
 		temp_file.seek(0)
 
+		# load them
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendlines(
 			[
@@ -2194,7 +2532,54 @@ class Master:
 	def mat(self, code):
 		"""Run matlab code. Does not append a semicolon"""
 		if not self.isalive_mat: raise Exception('mat_object not alive')
-		self.mat_object.sendlines(code)
+		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
+
+		# go through the code
+		end = 0
+		done = ''
+		while end < len(code) and code[end].strip()[:2] not in ['#!', '%!']:
+			l = code[end].strip()
+			if l and  l[0] not in '%#':
+				# skip comments
+				i = 0
+				ignore = False
+				while i < len(l):
+					if l[i] in '\'"':
+						ignore = not ignore
+					elif not ignore and (l[i] in '#%'):
+						break
+					i += 1
+
+				# do the thing
+				# if command doesn't finish, matlab doesn't send anything in return
+				self.mat_object.send(l[:i] + '\n')
+				self.mat_object.expect('\r\n')
+
+				if l[-3:] == '...':
+					# if end with line continuation, nothing
+					continue
+
+				# look for balancing things to see if done
+				for i in l:
+					if i in '([{':
+						done += i
+					elif i in ')]}':
+						try:
+							if i == ')' and done[-1] == '(':
+								done = _done[:-1]
+							elif i == ']' and done[-1] == '[':
+								done = _done[:-1]
+							elif i == '}' and done[-1] == '}':
+								done = done[-1]
+						except Exception:
+							pass
+
+				if len(done) == 0:
+					# if everything matches up, start over and print
+					self.mat_object.expect('>>')
+					print(self.mat_object.before)
+
+			end += 1
 
 	def m_to_r(self, names):
 		"""See mat_to_r"""
@@ -2220,18 +2605,20 @@ class Master:
 		NameError
 			If a variable not in the Matlab environment
 		"""
+		## input validation
 		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
 		elif not self.isalive_r: raise RuntimeError('r_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check the variables
 		who = self.who_mat
-		if any([i not in who for i in names]):
-			raise NameError(str(i) + ' not in Matlab environment')
+		for i in names:
+			if i not in who:
+				raise NameError(str(i) + ' not in Matlab environment')
 
+		# bundle them
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
 		temp_file = self.mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
@@ -2240,6 +2627,7 @@ class Master:
 				'clear ' + random_name
 			])
 
+		# load them
 		self.random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.r_object.sendlines(
 			[
@@ -2286,25 +2674,30 @@ class Master:
 		NameError
 			If a variable not in the Matlab environment
 		"""
+		## input validation
 		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check the variables
 		who = self.who_mat
-		if any([i not in who for i in names]):
-			raise NameError(str(i) + ' not in Matlab environment')
+		for i in names:
+			if i not in who:
+				raise NameError(str(i) + ' not in Matlab environment')
 
+		# bundle them
 		random_name = ''.join(choices('abcdefghijklmnopqrstuvwxyz', k=10))
 		self.mat_object.sendline(random_name + ' = tempname')
 		temp_file = self.mat_object.before.split('\r\n\r\n')[2].strip()[1:-1]
+
+		# get them
 		self.mat_object.sendlines([
 				'save ' + temp_file + ' ' + ' '.join(names),
 				'clear ' + random_name
 			])
 		
+		# load them and return
 		ret = sio.loadmat(temp_file, squeeze_me=True)
 		del ret['__globals__'], ret['__header__'], ret['__version__']
 		if load: self._variables.update(ret)
@@ -2337,13 +2730,13 @@ class Master:
 		TypeError
 			If a variable is not str,int,float
 		"""
+		## input validation
 		if not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check and get the variables
 		dump = self.dump_mat(load=False)
 		ret = {}
 		for i in names:
@@ -2353,6 +2746,8 @@ class Master:
 				raise TypeError('Only str, int, float can be passed to bash')
 			else:
 				ret[i] = _dump[i]
+
+		# load them
 		self._environ.update(ret)
 
 	def py_to_m(self, names):
@@ -2382,20 +2777,21 @@ class Master:
 		NameError
 			If a variable not in the Python environment
 		"""
+		## input validation
 		if not self.isalive_mat: raise RuntimeError('mat_object not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check the variables
 		for i in names:
 			if i not in self._variables:
 				raise NameError(i + ' not in Python environment.')
 
-
+		# get them
 		to_load = {i: self._variables[i] for i in names}
 		if 'as_array' in kwargs and kwargs['as_array']:
+			# do as_array and replace
 			temp = list(to_load.keys())
 			if 'extras' in kwargs:
 				extras = kwargs['extras']
@@ -2404,10 +2800,12 @@ class Master:
 				temp = [as_array(i) for i in temp]
 			to_load = {k:v for d in temp for k,v in d.items()}
 
+		# bundle them
 		temp_file = NamedTemporaryFile(suffix='.mat')
 		sio.savemat(temp_file, {i: self._variables[i] for i in names})
 		temp_file.seek(0)
 
+		# load them
 		self.mat_object.sendline('load \'' + temp_file.name + '\';')
 
 	def dump_m(self, load : bool = False):
@@ -2474,8 +2872,6 @@ class Master:
 	def bash(self, code):
 		"""Run bash code"""
 		code = code.replace('\r\n','\n').replace('\r','\n').split('\n')
-		while len(code[-1]) < 1:
-			code = code[:-1]
 		subprocess.run('\n'.join(code), shell=True, env={k:str(v) for k,v in self._environ.items()}, executable='/bin/bash').check_returncode()
 		self._environ = os.environ.copy()
 
@@ -2499,19 +2895,19 @@ class Master:
 		TypeError
 			If a variable is not str,int,float
 		"""
-		if type(names) is str:
-			names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized name')
+		## input validation
+		if type(names) is str: names = names.replace(' ','').split(',')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized name')
 
+		# check and get the variables
 		for i in names:
 			if i not in self._variables:
 				raise NameError(i + ' not in Python environment.')
 			elif type(i) not in [str, int, float]:
 				raise TypeError('Only str, int, float can be passed to bash')
 
+		# load them
 		to_load = {i: self._variables[i] for i in names}
 		self._environ.update(to_load)
 
@@ -2544,18 +2940,20 @@ class Master:
 		NameError
 			If a variable not in the bash environment
 		"""
+		## input validation
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 
+		# check and get the variables
 		ret = {}
 		for i in names:
 			if i not in self._environ:
 				raise NameError(str(i) + ' not in bash environment')
 			else:
 				ret[i] = self._environ[i]
+
+		# load and return them
 		if load: self._variables.update(ret)
 		return ret
 
@@ -2577,13 +2975,13 @@ class Master:
 		NameError
 			If a variable not in the bash environment
 		"""
+		## input validation
 		if not self.isalive_r: raise RuntimeError('r_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 		
+		# check and get the variables
 		out = {}
 		for i in names:
 			if i not in self._environ:
@@ -2591,6 +2989,7 @@ class Master:
 			else:
 				out[i] = self._environ[i]
 		
+		# load them
 		self._r_object.sendlines([
 				k + ' <- ' + ('"' + v + '"' if type(v) is str else str(v))
 					for k, v in out.items()
@@ -2615,13 +3014,13 @@ class Master:
 		NameError
 			If a variable not in the bash environment
 		"""
+		## input validation
 		if not self.isalive_mat: raise RuntimeError('mat_object is not alive')
 		if type(names) is str: names = names.replace(' ','').split(',')
-		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]):
-			names = list(names)
-		else:
-			raise ValueError('Unrecognized @names')
+		elif hasattr(names, '__iter__') and all([type(i) is str for i in names]): names = list(names)
+		else: raise ValueError('Unrecognized @names')
 		
+		# check and get the variables
 		out = {}
 		for i in names:
 			if i not in self._environ:
@@ -2629,9 +3028,12 @@ class Master:
 			else:
 				out[i] = self._environ[i]
 		
+		# bundle them
 		temp_file = NamedTemporaryFile(suffix='.mat')
 		sio.savemat(temp_file, out)
 		temp_file.seek(0)
+
+		# load them
 		self._mat_object.sendlines('load \'' + temp_file.name + '\';')
 
 
@@ -2640,7 +3042,7 @@ class Master:
 # ------------------------------- Defaults ------------------------------- #
 DEFAULT_DUMP = dump_dict
 DEFAULT_DUMPS = dumps_json
-if system() == 'Windows':
-	as_multilang = as_multilang_windows
-else:
-	as_multilang = as_multilang_unix
+
+# set system specific
+if system() == 'Windows': as_multilang = as_multilang_windows
+else: as_multilang = as_multilang_unix

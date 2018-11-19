@@ -47,22 +47,26 @@ class RObject:
 		Wait for the CLI to say a phrase
 	"""
 
-	def __init__(self, connect : bool = True, load : bool = False):
+	def __init__(self, connect : bool = True, load : bool = False, timeout : int = 600):
 		"""Setup an RObject
 		
 		Parameters
 		----------
 		connect : bool
 			Whether to connect to the R environment
+			If False, @load and @timeout are ignored.
 			Default: True
 		load : bool
 			Whether to load the existing R workspace
 			Default: False
+		timeout : int
+			Number of seconds until time out
+			Default: 600
 		"""
 		self._r_object = None
-		if connect: self.connect(load)
+		if connect: self.connect(load, timeout)
 
-	def connect(self, load : bool = False):
+	def connect(self, load : bool = False, timeout : int = 600):
 		"""Connect to an R environment
 		Does nothing if `isalive`; use `reconnect`
 
@@ -70,16 +74,19 @@ class RObject:
 		----------
 		load : bool
 			Whether to load the existing R workspace
+		timeout : int
+			Number of seconds until time out
+			Default: 600
 		"""
 		if self.isalive: return
 		if load:
 			try:
-				self._r_object = pexpect.spawn('R', timeout=600)
+				self._r_object = pexpect.spawn('R', timeout=timeout)
 			except pexpect.ExceptionPexpct:
 				raise OSError('R not accessible by the command: `$ R`')
 		else:
 			try:
-				self._r_object = pexpect.spawn('R --no-restore', timeout=600)
+				self._r_object = pexpect.spawn('R --no-restore', timeout=timeout)
 			except pexpect.ExceptionPexpct:
 				raise OSError('R not accessible by the command: `$ R --no-restore\nIf `$ R` should work, try with load = True`')
 		self.expect('\r\n>')
@@ -130,7 +137,7 @@ class RObject:
 		if not (isinstance(line, str) or isinstance(line, bytes)):
 			raise TypeError('line must be str. got ' + str(line))
 		self._r_object.sendline(line)
-		self.expect(['\r\n>',r'\+'])
+		self.expect(['\r\n>',r'(?<=[\r\n])\+'])
 		if 'Error' in self.before:
 			raise Exception(' '.join(self.before.split('\r\n')[1:]))
 
@@ -269,7 +276,9 @@ class RObject:
 	def before(self):
 		"""The last value R returned
 		Will have non-value str characters: e.g. \\r, \\n"""
-		if self.isalive: return self._r_object.before.decode('utf8').strip().replace(' \r','')
+		if self.isalive:
+			ret = self._r_object.before.decode('utf8').strip().replace(' \r','')
+			return ret
 		else: return ''
 
 	@property
@@ -310,25 +319,35 @@ class MatlabObject:
 	expect
 		Wait for the CLI to say a phrase
 	"""
-	def __init__(self, connect = True):
+	def __init__(self, connect = True, timeout : int = 600):
 		"""Setup an MatlabObject
 		
 		Parameters
 		----------
 		connect : bool
 			Whether to connect to the Matlab environment
+			If False, @timeout is ignored
 			Default: True
+		timeout : int
+			Number of seconds until time out
+			Default: 600
 		"""
 		self._mat_object = None
-		if connect: self.connect()
+		if connect: self.connect(timeout)
 
-	def connect(self):
+	def connect(self, timeout : int = 600):
 		"""Connect to an Matlab environment
 		Does nothing if `isalive`; use `reconnect`
+
+		Parameters
+		----------
+		timeout : int
+			Number of seconds until time out
+			Default: 600
 		"""
 		if self.isalive: return
 		try:
-			self._mat_object = pexpect.spawn('matlab -nojvm -nodisplay -nosplash')
+			self._mat_object = pexpect.spawn('matlab -nojvm -nodisplay -nosplash', timeout=timeout)
 		except pexpect.ExceptionPexpct:
 			raise OSError('Matlab not accessible by the command: `$ matlab -nojvm -nodisplay -nosplash`')
 		self.expect('>>')
@@ -489,7 +508,9 @@ class MatlabObject:
 	def before(self):
 		"""The last value Matlab returned
 		Will have non-value str characters: e.g. \\r, \\n"""
-		if self.isalive: return self._mat_object.before.decode('utf8').strip()
+		if self.isalive:
+			ret = self._mat_object.before.decode('utf8').strip()
+			return ret
 		else: return ''
 
 	@property

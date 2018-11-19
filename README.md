@@ -18,7 +18,7 @@ Import as `import multilang`
 2. Terminal command `$ matlab -nojvm -nodisplay -nosplash` that launches the Matlab CLI
 
 ### Development
-Current build is 0.1.1 
+Current build is 0.1.3  
 Developed solely by me in pursuit of my graduate studies at MIT  
 If you find any bugs, please place an Issue on [github](https://github.com/scvannost/multilang).
 
@@ -47,19 +47,52 @@ Either way, you get full access to the Python, R, Matlab, and shell environments
 any library or built-in function; and can build on top of these frameworks to do
 crazy things and bodge things quickly.
 
-### Syntax Highlighting
+### Command Line
+usage: `python -m multilang [-h] [-v [{0,1,2,3}]] [-s] [-t [TIMEOUT]] file`
+
+##### positional arguments:  
+1. `file`  
+   the file name to run
+
+##### optional arguments:  
+1. `-h`, `--help`  
+   show this help message and exit  
+
+2. `-v [{0,1,2,3}]`, `--verbosity [{0,1,2,3}]`  
+   the level of things to print  
+   0 is silent,  
+   *1 is default*,  
+   2 also prints switching environments,  
+   3 is max  
+
+3. `-s`, `--silent`  
+   same as `--verbosity 0`
+
+4. `-t [TIMEOUT]`, `--timeout [TIMEOUT]`  
+   the number of seconds to wait for R or matlab to respond  
+   default *600*
+
+
+## Syntax Highlighting
 By putting the `.tmPreferences` and `.sublime-syntax` in the `.config/sublime-text-3/Packages/User`
 folder, Sublime will automatically highlight the syntax correctly for each language in a `.mul` file
-and understand how to properly comment in Multilang.
+and understand how to properly comment in Multilang.  
+You may need to do `View > Syntax > Open all with current extension as... > User > Multilang`
 
-### Example code
+## Example code
 Examples will be placed in the `examples` folder 
 
-### Changelog
+## Changelog
+v0.1.3:
+  - added options to command line
+  - added `_verbosity` to `as_multilang`
+  - capture output for R and Matlab
+  - `timeout` parameter added across the board
+
 v0.1.2:
   - expanded documentation
   - better handling of errors from pexpect
-  - Windows handling in \_\_init\_\_ instead of \_\_main\_\_
+  - Windows handling in `__init__` instead of `__main__`
 
 v0.1.1:
   - name change

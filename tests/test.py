@@ -8,7 +8,7 @@ class Test_Multilang_Func(unittest.TestCase):
 		with self.subTest('start in R'):
 			ry = as_multilang('''#! multilang R
 				a <- 3
-			''')
+			''', _verbosity=0)
 			self.assertIn('a', ry.who_r)
 			d = ry.dump_r()
 			self.assertIn('a', d)
@@ -17,7 +17,7 @@ class Test_Multilang_Func(unittest.TestCase):
 
 		with self.subTest('start in Mat'):
 			ry = as_multilang('''#! multilang mat
-				a = 3''')
+				a = 3''', _verbosity=0)
 			self.assertIn('a', ry.who_mat)
 			d = ry.dump_mat()
 			self.assertIn('a', d)
@@ -27,7 +27,7 @@ class Test_Multilang_Func(unittest.TestCase):
 		with self.subTest('start py'):
 			ry = as_multilang(
 '''#! multilang py
-a = 3''')
+a = 3''', _verbosity=0)
 			self.assertIn('a', ry.who_py)
 			d = ry.dump_py()
 			self.assertIn('a',d)
@@ -37,7 +37,7 @@ a = 3''')
 		with self.subTest('start implied py'):
 			ry = as_multilang(
 '''#! multilang
-a = 3''')
+a = 3''', _verbosity=0)
 			self.assertIn('a', ry.who_py)
 			d = ry.dump_py()
 			self.assertIn('a', d)
@@ -50,7 +50,7 @@ a = 3''')
 '''#! multilang R
 a <- 3
 #! python -> a
-a *= 2''')
+a *= 2''', _verbosity=0)
 			self.assertIn('a', ry.who_py)
 			self.assertIn('a', ry.who_r)
 			p = ry.dump_py()
@@ -66,7 +66,7 @@ a *= 2''')
 '''#! multilang R
 a <-3
 #! matlab -> a
-a = a+1''')
+a = a+1''', _verbosity=0)
 			self.assertIn('a', ry.who_mat)
 			self.assertIn('a', ry.who_r)
 			m = ry.dump_mat()
@@ -82,7 +82,7 @@ a = a+1''')
 '''#! multilang
 a = 3
 #! r -> a
-a = 7''')
+a = 7''', _verbosity=0)
 			self.assertIn('a', ry.who_py)
 			self.assertIn('a', ry.who_r)
 			p = ry.dump_py()
@@ -159,7 +159,7 @@ class Test_Multilang_Master_Base(unittest.TestCase):
 			self.assertDictEqual(ry.dump_all(), {'b':4, 'r_d':7, 'mat_d':9})
 			self.assertDictEqual(ry.dump_all('mat'), {'b':4, 'd':9})
 			self.assertDictEqual(ry.dump_all('r'), {'b':4, 'd':7})
-			self.assertRaisesRegex(Exception, 'Repeated variable name [a-zA-Z]+', ry.dump_all, None)
+			self.assertRaisesRegex(Exception, 'Repeated variable name: [a-zA-Z]+', ry.dump_all, None)
 
 class Test_Multilang_Master_Py(unittest.TestCase):
 	def setUp(self):
